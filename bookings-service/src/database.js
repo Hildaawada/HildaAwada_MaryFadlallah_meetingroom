@@ -1,0 +1,13 @@
+const mongoose = require("mongoose");
+
+async function connectDB() {
+  try {
+    await mongoose.connect(process.env.database_url);
+    console.log("Bookings Service: Database connected");
+  } catch (err) {
+    console.error("DB Connection Error:", err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = { connectDB };
