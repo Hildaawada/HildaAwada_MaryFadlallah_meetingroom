@@ -23,6 +23,9 @@ const bookingsSchema = new mongoose.Schema(
       enum: ["confirmed", "cancelled"],
       default: "confirmed",
     },
+    //this is to allow admins and managers to block room bookings even if it is available.
+    BlockBooking: { type: Boolean, default: false },          
+    blockReason: { type: String, default: null } 
   },
   { timestamps: true }
 );

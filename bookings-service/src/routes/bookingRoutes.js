@@ -22,7 +22,7 @@ router.get("/me", auth, controller.getMyBookings);
 router.put("/:bookingID", auth, controller.updateMyBooking);
 router.delete("/:bookingID", auth, controller.cancelMyBooking);
 
-// Admin, Manager and Auditor can see all bookings
+// Admin, Manager and Auditor can see all bookings (just the confirmed)
 router.get("/", auth, adminAuth, managerAuth, auditorAuth,moderatorAuth, controller.getAllBookings);
 
 
@@ -31,7 +31,15 @@ router.put("/admin/:bookingId", auth, adminAuth, controller.updateBooking);
 router.delete("/admin/:bookingId", auth, adminAuth, controller.cancelBooking);
 router.post("/:bookingId/override-cancel",auth,adminAuth,controller.overrideCancelBooking);
 
-// View a specific room booking
+// View a specific room booking history
 router.get("/rooms/:roomId", auth, adminAuth, managerAuth, moderatorAuth,auditorAuth, controller.getBookingsByRoom);
+
+// Mark a room as unavailable by managers and admins
+router.post("/admin/block-room",auth,adminAuth,managerAuth,controller.blockRoom);
+
+// Remove the Block 
+router.delete("/admin/block-room/:blockID",auth,adminAuth,managerAuth,controller.unblockRoom);
+// FULL HISTORY
+router.get("/history",auth,adminAuth,auditorAuth,controller.getAllBookingsHistory);
 
 module.exports = router;
