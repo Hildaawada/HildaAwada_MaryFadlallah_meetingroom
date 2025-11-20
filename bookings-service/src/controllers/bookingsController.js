@@ -1,3 +1,4 @@
+const axios = require("axios");
 const Bookings = require("../models/Booking");
 
 // this is to handle both bookingID and bookingId 
@@ -22,6 +23,61 @@ function formatBooking(b) {
   };
 }
 
+async function verifyRoomExists(roomID) {
+  try {
+    const res = await axios.get(
+      `${process.env.ROOM_SERVICE_URL}/internal/${roomID}`,
+      {
+        headers: {
+          "x-service-key": process.env.SERVICE_KEY
+        }
+      }
+    );
+
+    return res.data.exists === true;
+  } catch (err) {
+    console.error("verifyRoomExists error:", err.message);
+    return false;
+  }
+}
+
+// NEW: USES INTERNAL STATUS UPDATE ENDPOINT
+async function updateRoomStatusBasedOnBookings(roomID) {
+  try {
+    const futureActive = await Bookings.findOne({
+      roomID,
+      BlockBooking: false,
+      status: "confirmed",
+      checkout: { $gt: new Date() }
+    });
+
+    const blocked = await Bookings.findOne({
+      roomID,
+      BlockBooking: true,
+      status: "confirmed",
+      checkout: { $gt: new Date() }
+    });
+
+    let newStatus = "available";
+    if (blocked) newStatus = "out-of-service";
+    else if (futureActive) newStatus = "booked";
+
+    // 🔥 IMPORTANT: USE INTERNAL ENDPOINT
+    await axios.patch(
+      `${process.env.ROOM_SERVICE_URL}/internal/${roomID}/status`,
+      { status: newStatus },
+      {
+        headers: {
+          "x-service-key": process.env.SERVICE_KEY
+        }
+      }
+    );
+
+  } catch (err) {
+    console.error("updateRoomStatusBasedOnBookings error:", err.message);
+  }
+}
+
 //The admins can block users from booking the room even if it is available
 exports.blockRoom = async (req, res) => {
   try {
@@ -34,20 +90,20 @@ exports.blockRoom = async (req, res) => {
     }
 
     const start = new Date(checkin);
-    const end   = new Date(checkout);
+    const end = new Date(checkout);
 
-    if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime()) ||
-      start >= end
-    ) {
+    if (isNaN(start) || isNaN(end) || start >= end) {
       return res.status(400).json({ message: "The time range is invalid" });
     }
 
-//THIS IS TO ENSURE NOT TO BLOCK A RESERVED OR ALREADY BLOCKED ROOM
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
+    }
+
     const overlapping = await Bookings.findOne({
       roomID,
-      status: { $ne: "cancelled" },   
+      status: { $ne: "cancelled" },
       checkin: { $lt: end },
       checkout: { $gt: start }
     });
@@ -67,9 +123,11 @@ exports.blockRoom = async (req, res) => {
       checkin: start,
       checkout: end,
       status: "confirmed",
-      BlockBooking: true,                            
+      BlockBooking: true,
       blockReason: blockReason || "Room unavailable"
     });
+
+    await updateRoomStatusBasedOnBookings(roomID);
 
     return res.status(201).json({
       message: "Room blocked successfully",
@@ -88,12 +146,17 @@ exports.unblockRoom = async (req, res) => {
     if (!blockID) {
       return res.status(400).json({ message: "blockID is required" });
     }
+
     const block = await Bookings.findById(blockID);
     if (!block || !block.BlockBooking) {
       return res.status(404).json({ message: "Error, this room is not blocked" });
     }
 
+    const roomID = block.roomID;
+
     await Bookings.findByIdAndDelete(blockID);
+
+    await updateRoomStatusBasedOnBookings(roomID);
 
     return res.json({ message: "The block is removed successfully" });
   } catch (err) {
@@ -102,9 +165,7 @@ exports.unblockRoom = async (req, res) => {
   }
 };
 
-
 //CHECK ROOM AVAILABIITY 
-
 exports.checkforAvailability = async (req, res) => {
   try {
     const { roomID, checkin, checkout } = req.query;
@@ -115,6 +176,11 @@ exports.checkforAvailability = async (req, res) => {
       });
     }
 
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
+    }
+
     const start = new Date(checkin);
     const end = new Date(checkout);
 
@@ -124,22 +190,22 @@ exports.checkforAvailability = async (req, res) => {
 
     const conflict = await Bookings.findOne({
       roomID,
-      status: { $ne: "cancelled" }, 
+      status: { $ne: "cancelled" },
       checkin: { $lt: end },
-      checkout: { $gt: start },
+      checkout: { $gt: start }
     });
 
     if (conflict) {
       return res.status(200).json({
         roomID,
         available: false,
-        conflict,
+        conflict
       });
     }
 
     return res.status(200).json({
       roomID,
-      available: true,
+      available: true
     });
   } catch (err) {
     console.error("Error:", err);
@@ -147,8 +213,7 @@ exports.checkforAvailability = async (req, res) => {
   }
 };
 
-
-// THE USER BOOKING FN THAT ALSO TAKE INTO ACCOUNT IF THE ROOM IS BLOCKED BY ADMINS OR ALREADY BOOKED
+// THE USER BOOKING FN THAT ALSO TAKE INTO ACCOUNT IF THE ROOM IS BLOCKED OR ALREADY BOOKED
 exports.createBooking = async (req, res) => {
   try {
     const { roomID, checkin, checkout } = req.body;
@@ -156,11 +221,17 @@ exports.createBooking = async (req, res) => {
 
     if (!roomID || !checkin || !checkout) {
       return res.status(400).json({
-        message: "roomID, checkin and checkout dates are required",});
+        message: "roomID, checkin and checkout dates are required",
+      });
     }
 
     if (!username) {
       return res.status(401).json({ message: "Error, the username is missing" });
+    }
+
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
     }
 
     const start = new Date(checkin);
@@ -169,7 +240,7 @@ exports.createBooking = async (req, res) => {
     if (isNaN(start) || isNaN(end) || start >= end) {
       return res.status(400).json({ message: "Invalid time range" });
     }
-    //CHECK IF BLOCKED OR ALREADY BOOKED
+
     const conflict = await Bookings.findOne({
       roomID,
       status: { $ne: "cancelled" },
@@ -178,9 +249,11 @@ exports.createBooking = async (req, res) => {
     });
 
     if (conflict) {
-      return res.status(409).json({
-        message: "This room is not available for this time slot",
-      });
+      const msg = conflict.BlockBooking
+        ? "This room is blocked by admin"
+        : "This room is already booked for this time slot";
+
+      return res.status(409).json({ message: msg });
     }
 
     const booking = await Bookings.create({
@@ -189,8 +262,10 @@ exports.createBooking = async (req, res) => {
       checkin: start,
       checkout: end,
       status: "confirmed",
-      BlockBooking: false, 
+      BlockBooking: false,
     });
+
+    await updateRoomStatusBasedOnBookings(roomID);
 
     return res.status(201).json(booking);
   } catch (err) {
@@ -199,16 +274,10 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-
-//shows users booking history, even cancelled can be seen
+//shows users booking history
 exports.getMyBookings = async (req, res) => {
   try {
     const username = req.user?.username;
-    if (!username) {
-      return res
-        .status(401)
-        .json({ message: "User info missing" });
-    }
 
     const bookings = await Bookings.find({ username }).sort({ checkin: 1 });
     res.json(bookings);
@@ -217,7 +286,6 @@ exports.getMyBookings = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 exports.updateMyBooking = async (req, res) => {
   try {
@@ -243,7 +311,6 @@ exports.updateMyBooking = async (req, res) => {
       return res.status(400).json({ message: "Invalid time range" });
     }
 
-    // Check if the update conflicts with other bookings or blocks 
     const conflict = await Bookings.findOne({
       _id: { $ne: booking._id },
       roomID: booking.roomID,
@@ -259,8 +326,9 @@ exports.updateMyBooking = async (req, res) => {
       });
     }
 
-
     await booking.save();
+    await updateRoomStatusBasedOnBookings(booking.roomID);
+
     return res.json(booking);
   } catch (err) {
     console.error("updateMyBooking error:", err);
@@ -283,6 +351,8 @@ exports.cancelMyBooking = async (req, res) => {
     booking.status = "cancelled";
     await booking.save();
 
+    await updateRoomStatusBasedOnBookings(booking.roomID);
+
     return res.json({ message: "Booking cancelled", booking });
   } catch (err) {
     console.error("cancel My Booking error:", err);
@@ -290,7 +360,6 @@ exports.cancelMyBooking = async (req, res) => {
   }
 };
 
-// adjusted to only show actual bookings and not the cancelled as well
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Bookings.find({
@@ -305,8 +374,6 @@ exports.getAllBookings = async (req, res) => {
   }
 };
 
-
-//for admins
 exports.updateBooking = async (req, res) => {
   try {
     const id = getBookingIdFromParams(req.params);
@@ -320,6 +387,8 @@ exports.updateBooking = async (req, res) => {
     if (status) booking.status = status;
 
     await booking.save();
+    await updateRoomStatusBasedOnBookings(booking.roomID);
+
     return res.json(booking);
   } catch (err) {
     console.error("update Booking error:", err);
@@ -327,7 +396,6 @@ exports.updateBooking = async (req, res) => {
   }
 };
 
-// for admins
 exports.cancelBooking = async (req, res) => {
   try {
     const id = getBookingIdFromParams(req.params);
@@ -337,6 +405,8 @@ exports.cancelBooking = async (req, res) => {
 
     booking.status = "cancelled";
     await booking.save();
+
+    await updateRoomStatusBasedOnBookings(booking.roomID);
 
     return res.json({ message: "Booking cancelled by admin", booking });
   } catch (err) {
@@ -355,6 +425,8 @@ exports.overrideCancelBooking = async (req, res) => {
     booking.status = "cancelled";
     await booking.save();
 
+    await updateRoomStatusBasedOnBookings(booking.roomID);
+
     return res.json({ message: "Booking force-cancelled by admin", booking });
   } catch (err) {
     console.error("overrideCancelBooking error:", err);
@@ -362,10 +434,9 @@ exports.overrideCancelBooking = async (req, res) => {
   }
 };
 
-// Room booking history (including cancelled)
 exports.getBookingsByRoom = async (req, res) => {
   try {
-    const { roomID} = req.params;
+    const { roomID } = req.params;
     const bookings = await Bookings.find({ roomID }).sort({ checkin: 1 });
     return res.json(bookings);
   } catch (err) {
@@ -374,8 +445,7 @@ exports.getBookingsByRoom = async (req, res) => {
   }
 };
 
-//all bookings history (including cancelled)
- exports.getAllBookingsHistory = async (req, res) => {
+exports.getAllBookingsHistory = async (req, res) => {
   try {
     const bookings = await Bookings.find().sort({ roomID: 1, checkin: 1 });
     const formatted = bookings.map(formatBooking);

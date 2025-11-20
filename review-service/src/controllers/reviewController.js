@@ -1,13 +1,34 @@
+const axios = require("axios");
 const Review = require("../models/review");
 
 // To be used in other functions below.
 function isPrivilegedReviewer(role) {
   return ["admin", "moderator", "auditor"].includes(role);
 }
+
 // to handle ID and Id errors
 function getReviewIdFromParams(params) {
   return params.reviewID || params.reviewId;
 }
+
+// Service-to-service room validator
+async function verifyRoomExists(roomID) {
+  try {
+    const res = await axios.get(
+      `${process.env.ROOM_SERVICE_URL}/internal/${roomID}`,
+      {
+        headers: {
+          "x-service-key": process.env.SERVICE_KEY
+        }
+      }
+    );
+    return res.data.exists === true;
+  } catch (err) {
+    console.error("verifyRoomExists error:", err.message);
+    return false;
+  }
+}
+
 
 exports.SubmitReview = async (req, res) => {
   try {
@@ -17,6 +38,11 @@ exports.SubmitReview = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Please provide the roomID and the rating" });
+    }
+
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
     }
 
     if (rating < 1 || rating > 5) {
@@ -57,7 +83,7 @@ exports.getMyReview = async (req, res) => {
 
 exports.updateMyReview = async (req, res) => {
   try {
-    const { reviewID } = req.params;
+    const reviewID = getReviewIdFromParams(req.params);
     const { rating, comment } = req.body;
 
     const review = await Review.findById(reviewID);
@@ -116,7 +142,7 @@ exports.DeleteMyReview = async (req, res) => {
         .json({ message: "You can only delete your own reviews" });
     }
 
-    await Review.deleteOne();
+    await Review.findByIdAndDelete(reviewID);
 
     return res.json({ message: "Review deleted successfully" });
   } catch (err) {
@@ -125,12 +151,18 @@ exports.DeleteMyReview = async (req, res) => {
   }
 };
 
+
 //everyone is allowed to see unhidden 
 exports.getRoomReviews = async (req, res) => {
   try {
     const { roomID } = req.params;
     const role = req.user.role;
-    //to ensure regular users don't see hidden reviews
+
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
+    }
+
     const filter = { roomID };
     if (!isPrivilegedReviewer(role)) {
       filter.hidden = false;
@@ -146,7 +178,6 @@ exports.getRoomReviews = async (req, res) => {
 };
 
 
-
 exports.getAllReviews = async (req, res) => {
   try {
     const reviews = await Review.find({}).sort({ createdAt: -1 });
@@ -156,6 +187,8 @@ exports.getAllReviews = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
 //just for admins
 exports.DeleteReview = async (req, res) => {
   try {
@@ -170,7 +203,8 @@ exports.DeleteReview = async (req, res) => {
       return res.status(404).json({ message: "ERROR! Review not found" });
     }
 
-    await review.deleteOne();
+    await Review.findByIdAndDelete(reviewID);
+
     return res.json({ message: "Review deleted successfully" });
   } catch (err) {
     console.error("Error:", err);
@@ -203,6 +237,7 @@ exports.flagReview = async (req, res) => {
   }
 };
 
+
 exports.unflagReview = async (req, res) => {
   try {
     const { reviewID } = req.params;
@@ -224,6 +259,7 @@ exports.unflagReview = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.getFlaggedReviews = async (req, res) => {
   try {
@@ -259,6 +295,7 @@ exports.HideReview = async (req, res) => {
   }
 };
 
+
 exports.UnhideReview = async (req, res) => {
   try {
     const { reviewID } = req.params;
@@ -281,11 +318,14 @@ exports.UnhideReview = async (req, res) => {
 };
 
 
-
-
 exports.InternalGetRoomReviews = async (req, res) => {
   try {
     const { roomID } = req.params;
+
+    const exists = await verifyRoomExists(roomID);
+    if (!exists) {
+      return res.status(404).json({ message: "This room does not exist" });
+    }
 
     const reviews = await Review.find({
       roomID,

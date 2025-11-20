@@ -1,7 +1,9 @@
-// Allows internal service accounts only
-module.exports = function (req, res, next) {
-  if (req.user.role !== "service")
-    return res.status(403).json({ message: "Service accounts only" });
+module.exports = (req, res, next) => {
+  const key = req.headers["x-service-key"];
+
+  if (!key || key !== process.env.SERVICE_KEY) {
+    return res.status(401).json({ message: "Unauthorized service" });
+  }
 
   next();
 };
