@@ -28,11 +28,10 @@ const roomSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-
+//shows if blocked by admins, next booking or if it is available, adjusted when all project is combined 
     status: {
       type: String,
-      enum: ["available", "booked", "out-of-service"],
-      default: "available"
+      default: "available" 
     },
 
   },

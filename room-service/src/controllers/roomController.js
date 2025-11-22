@@ -2,33 +2,37 @@ const Room = require("../models/Room");
 
 
 
-exports.checkRoomExistsInternal = async (req, res) => {
+exports.checkRoomExistsInternal = async (req, res,next) => {
   try {
       const roomID = req.params.roomID || req.params.roomId || req.params.id;
 
     if (!roomID) {
-      return res.status(400).json({ message: "roomID is required" });
+      const err = new Error("roomID is required");
+      err.statusCode = 400;
+      throw err;
     }
 
     const room = await Room.findOne({ roomID }); 
 
     return res.json({
+      success: true,
       exists: !!room,
-      room: room || null,
+      room: room || null
     });
   } catch (err) {
-    console.error("checkRoomExistsInternal error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    next(err);
   }
 };
 
-exports.internalChangeStatus = async (req, res) => {
+exports.internalChangeStatus = async (req, res,next) => {
   try {
     const { roomID } = req.params;
     const { status } = req.body;
 
     if (!roomID || !status) {
-      return res.status(400).json({ message: "roomID and status are required" });
+      const error = new Error("roomID and status are required");
+      error.statusCode = 400;
+      throw error;
     }
 
     const room = await Room.findOneAndUpdate(
@@ -38,40 +42,49 @@ exports.internalChangeStatus = async (req, res) => {
     );
 
     if (!room) {
-      return res.status(404).json({ message: "Room not found" });
+      const error = new Error("Room not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     return res.json(room);
   } catch (err) {
-    console.error("internalChangeStatus error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    next(err);
   }
 };
 
 
 // ADD ROOM (Admin + Manager only)
-exports.addRoom = async (req, res) => {
+exports.addRoom = async (req, res,next) => {
   try {
     // Only admin or manager allowed
-    if (!["admin", "manager"].includes(req.user.role)) {
-      return res.status(403).json({ error: "You are not allowed to add rooms." });
+    if (!["admin", "manager"].includes(req.user.role))  {
+      const error = new Error("You are not allowed to add rooms.");
+      error.statusCode = 403;
+      throw error;
     }
 
     const room = await Room.create(req.body);
-    return res.status(201).json(room);
+    return res.status(201).json({
+      success: true,
+      message: "Room added successfully",
+      room
+    });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 
 // UPDATE ROOM (Admin + Manager only)
 
-exports.updateRoom = async (req, res) => {
+exports.updateRoom = async (req, res,next) => {
   try {
     if (!["admin", "manager"].includes(req.user.role)) {
-      return res.status(403).json({ error: "You are not allowed to update rooms." });
+      const error = new Error("You are not allowed to update rooms.");
+      error.statusCode = 403;
+      throw error;
     }
 
     const updated = await Room.findByIdAndUpdate(
@@ -80,45 +93,55 @@ exports.updateRoom = async (req, res) => {
       { new: true }
     );
 
-    if (!updated) return res.status(404).json({ error: "Room not found" });
+    if (!updated) {
+      const error = new Error("Room not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
     return res.json(updated);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 
 // DELETE ROOM (Admin only)
 
-exports.deleteRoom = async (req, res) => {
+exports.deleteRoom = async (req, res,next) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ error: "Only admin can delete rooms." });
+      const error = new Error("Only admin can delete rooms.");
+      error.statusCode = 403;
+      throw error;
     }
 
     const deleted = await Room.findByIdAndDelete(req.params.id);
 
-    if (!deleted) return res.status(404).json({ error: "Room not found" });
+    if (!deleted) {
+      const error = new Error("Room not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
     return res.json({ message: "Room deleted successfully" });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+     next(err);
   }
 };
 
 
 // GET ALL ROOMS (Everyone)
 
-exports.getAllRooms = async (req, res) => {
+exports.getAllRooms = async (req, res,next) => {
   try {
     const rooms = await Room.find();
-    return res.json(rooms);
+    return res.json({ success: true, rooms });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
@@ -128,19 +151,23 @@ exports.getRoomById = async (req, res) => {
   try {
     const room = await Room.findById(req.params.id);
 
-    if (!room) return res.status(404).json({ error: "Room not found" });
+    if (!room) {
+      const error = new Error("Room not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
     return res.json(room);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 // SEARCH ROOMS (Everyone)
 // Users can search by: capacity, location, equipment, status
 
-exports.searchRooms = async (req, res) => {
+exports.searchRooms = async (req, res,next) => {
   try {
     const query = {};
 
@@ -155,20 +182,22 @@ exports.searchRooms = async (req, res) => {
 
     const rooms = await Room.find(query);
 
-    return res.json(rooms);
+    return res.json({ success: true, rooms });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+     next(err);
   }
 };
 
 // CHANGE ROOM STATUS (Admin + Manager)
 // ex: available / booked / out-of-service
 
-exports.changeStatus = async (req, res) => {
+exports.changeStatus = async (req, res,next) => {
   try {
     if (!["admin", "manager"].includes(req.user.role)) {
-      return res.status(403).json({ error: "You cannot change room status." });
+      const error = new Error("You cannot change room status.");
+      error.statusCode = 403;
+      throw error;
     }
 
     const room = await Room.findByIdAndUpdate(
@@ -177,12 +206,16 @@ exports.changeStatus = async (req, res) => {
       { new: true }
     );
 
-    if (!room) return res.status(404).json({ error: "Room not found" });
+    if (!room) {
+      const error = new Error("Room not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
-    return res.json(room);
+    return res.json({ success: true, room });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 
 
