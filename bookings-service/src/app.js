@@ -4,12 +4,16 @@ const DB = require('./database').connectDB;
 app.use(express.json());
 
 const bookingsRoutes = require('./routes/bookingRoutes');
-app.use('/api/Bookings', bookingsRoutes);
 
+app.use('/v1/Bookings', bookingsRoutes);
+app.use('/api/Bookings', bookingsRoutes);
+const logMiddlewareAuth = require("./middleware/logauth");
+app.use(logMiddlewareAuth);
 
 require('dotenv').config();  
 
-
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
 
 DB();
 

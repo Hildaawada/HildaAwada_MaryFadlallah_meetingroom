@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("axios");//TO CONNCT SERVICES 
 const Review = require("../models/review");
 
 // To be used in other functions below.
@@ -11,7 +11,7 @@ function getReviewIdFromParams(params) {
   return params.reviewID || params.reviewId;
 }
 
-// Service-to-service room validator
+// To ensure room exsits before reviewing
 async function verifyRoomExists(roomID) {
   try {
     const res = await axios.get(
@@ -24,31 +24,32 @@ async function verifyRoomExists(roomID) {
     );
     return res.data.exists === true;
   } catch (err) {
-    console.error("verifyRoomExists error:", err.message);
     return false;
   }
 }
 
-
-exports.SubmitReview = async (req, res) => {
+// SUBMITTING A REVIEW 
+exports.SubmitReview = async (req, res, next) => {
   try {
     const { roomID, rating, comment } = req.body;
 
     if (!roomID || rating == null) {
-      return res
-        .status(400)
-        .json({ message: "Please provide the roomID and the rating" });
+      const error = new Error("Please provide the roomID and the rating");
+      error.statusCode = 400;
+      throw error;
     }
 
     const exists = await verifyRoomExists(roomID);
     if (!exists) {
-      return res.status(404).json({ message: "This room does not exist" });
+      const error = new Error("You cannot review a room that does not exist!");
+      error.statusCode = 404;
+      throw error;
     }
 
     if (rating < 1 || rating > 5) {
-      return res
-        .status(400)
-        .json({ message: " Choose a number between 1 and 5" });
+      const error = new Error("Choose a number between 1 and 5");
+      error.statusCode = 400;
+      throw error;
     }
 
     const review = await Review.create({
@@ -61,47 +62,47 @@ exports.SubmitReview = async (req, res) => {
 
     return res.status(201).json(review);
   } catch (err) {
-    console.error("Submit Review error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
 //it shows all reviews by the user
-exports.getMyReview = async (req, res) => {
+exports.getMyReview = async (req, res,next) => {
   try {
     const reviews = await Review.find({ username: req.user.username }).sort({
       createdAt: -1
     });
     return res.json(reviews);
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
-exports.updateMyReview = async (req, res) => {
+exports.updateMyReview = async (req, res,next) => {
   try {
     const reviewID = getReviewIdFromParams(req.params);
     const { rating, comment } = req.body;
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "ERROR! Review not found" });
+      const error = new Error("ERROR! Review not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     if (review.username !== req.user.username) {
-      return res
-        .status(403)
-        .json({ message: "ERROR, wrong user" });
+      const error = new Error("ERROR, wrong user");
+      error.statusCode = 403;
+      throw error;
     }
 
     if (rating != null) {
       if (rating < 1 || rating > 5) {
-        return res
-          .status(400)
-          .json({ message: "choose a number between 1 and 5" });
+        const error = new Error("choose a number between 1 and 5");
+        error.statusCode = 400;
+        throw error;
       }
       review.rating = rating;
     }
@@ -113,115 +114,122 @@ exports.updateMyReview = async (req, res) => {
 
     return res.json(review);
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+   next(err);
   }
 };
 
 
-exports.DeleteMyReview = async (req, res) => {
+exports.DeleteMyReview = async (req, res,next) => {
   try {
     const reviewID = getReviewIdFromParams(req.params);
     const username = req.user?.username;
 
     if (!reviewID) {
-      return res.status(400).json({ message: "Review ID is required" });
+      const error = new Error("Review ID is required");
+      error.statusCode = 400;
+      throw error;
     }
+
     if (!username) {
-      return res.status(401).json({ message: "Invalid username" });
+      const error = new Error("Invalid username");
+      error.statusCode = 401;
+      throw error;
     }
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "This review does not exist" });
+      const error = new Error("This review does not exist");
+      error.statusCode = 404;
+      throw error;
     }
 
     if (review.username !== username) {
-      return res
-        .status(403)
-        .json({ message: "You can only delete your own reviews" });
+      const error = new Error("You can only delete your own reviews");
+      error.statusCode = 403;
+      throw error;
     }
 
     await Review.findByIdAndDelete(reviewID);
 
     return res.json({ message: "Review deleted successfully" });
   } catch (err) {
-    console.error("Delete MyReview error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
 //everyone is allowed to see unhidden 
-exports.getRoomReviews = async (req, res) => {
+exports.getRoomReviews = async (req, res, next) => {
   try {
     const { roomID } = req.params;
     const role = req.user.role;
 
     const exists = await verifyRoomExists(roomID);
     if (!exists) {
-      return res.status(404).json({ message: "This room does not exist" });
+      const error = new Error("This room does not exist");
+      error.statusCode = 404;
+      throw error;
     }
 
     const filter = { roomID };
-    if (!isPrivilegedReviewer(role)) {
-      filter.hidden = false;
-    }
+    if (!isPrivilegedReviewer(role)) filter.hidden = false;
 
     const reviews = await Review.find(filter).sort({ createdAt: -1 });
 
     return res.json(reviews);
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
-exports.getAllReviews = async (req, res) => {
+exports.getAllReviews = async (req, res,next) => {
   try {
     const reviews = await Review.find({}).sort({ createdAt: -1 });
     return res.json(reviews);
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
 //just for admins
-exports.DeleteReview = async (req, res) => {
+exports.DeleteReview = async (req, res, next) => {
   try {
     const reviewID = getReviewIdFromParams(req.params);
 
     if (!reviewID) {
-      return res.status(400).json({ message: "Review ID is missing" });
+      const error = new Error("Review ID is missing");
+      error.statusCode = 400;
+      throw error;
     }
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "ERROR! Review not found" });
+      const error = new Error("ERROR! Review not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     await Review.findByIdAndDelete(reviewID);
 
     return res.json({ message: "Review deleted successfully" });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-
 //flagged reviews can be seen by regular users when searching room reviews but they are marked as flagged
-exports.flagReview = async (req, res) => {
+exports.flagReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
     const { why } = req.body;
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "Error! Review not found" });
+      const error = new Error("Error! Review not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     review.flagged = true;
@@ -232,19 +240,19 @@ exports.flagReview = async (req, res) => {
 
     return res.json({ message: "Review Flagged!", review });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-
-exports.unflagReview = async (req, res) => {
+exports.unflagReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "This review is not found" });
+      const error = new Error("This review is not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     review.flagged = false;
@@ -255,32 +263,31 @@ exports.unflagReview = async (req, res) => {
 
     return res.json({ message: "Review is successfully unflagged", review });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-
-exports.getFlaggedReviews = async (req, res) => {
+exports.getFlaggedReviews = async (req, res, next) => {
   try {
     const reviews = await Review.find({ flagged: true }).sort({
       createdAt: -1
     });
     return res.json(reviews);
   } catch (err) {
-    console.error("error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 
-exports.HideReview = async (req, res) => {
+exports.HideReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "ERROR! Review not found" });
+      const error = new Error("ERROR! Review not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     review.hidden = true;
@@ -290,19 +297,19 @@ exports.HideReview = async (req, res) => {
 
     return res.json({ message: " The review is hidden successfully", review });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-
-exports.UnhideReview = async (req, res) => {
+exports.UnhideReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
 
     const review = await Review.findById(reviewID);
     if (!review) {
-      return res.status(404).json({ message: "ERROR! Review not found" });
+      const error = new Error("ERROR! Review not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     review.hidden = false;
@@ -312,19 +319,19 @@ exports.UnhideReview = async (req, res) => {
 
     return res.json({ message: "The review is unhidden now", review });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-
-exports.InternalGetRoomReviews = async (req, res) => {
+exports.InternalGetRoomReviews = async (req, res, next) => {
   try {
     const { roomID } = req.params;
 
     const exists = await verifyRoomExists(roomID);
     if (!exists) {
-      return res.status(404).json({ message: "This room does not exist" });
+      const error = new Error("This room does not exist");
+      error.statusCode = 404;
+      throw error;
     }
 
     const reviews = await Review.find({
@@ -334,9 +341,7 @@ exports.InternalGetRoomReviews = async (req, res) => {
 
     const x = reviews.length;
     const RatingAvg =
-      x === 0
-        ? null
-        : reviews.reduce((sum, r) => sum + r.rating, 0) / x;
+      x === 0 ? null : reviews.reduce((sum, r) => sum + r.rating, 0) / x;
 
     return res.json({
       roomID,
@@ -345,7 +350,6 @@ exports.InternalGetRoomReviews = async (req, res) => {
       reviews
     });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };

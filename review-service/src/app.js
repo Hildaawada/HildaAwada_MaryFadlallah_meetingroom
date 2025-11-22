@@ -1,16 +1,19 @@
+require('dotenv').config();  
 const express = require('express');
 const app = express();
 const DB = require('./database').connectDB;
 app.use(express.json());
 
 const reviewRoutes = require('./routes/reviewRoutes');
+
+app.use('/v1/Review', reviewRoutes);
 app.use('/api/Review', reviewRoutes);
 
+const logMiddlewareAuth = require("./middleware/logauth");
+app.use(logMiddlewareAuth);
 
-require('dotenv').config();  
-
-
-
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
 DB();
 
 app.listen(process.env.PORT, () => {

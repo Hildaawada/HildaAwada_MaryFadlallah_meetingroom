@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
+const { encrypt, decrypt } = require("../utils/crypto"); //for encryption
+
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  email: { type: String, required: true, unique: true },//to be encrypted
+  password: { type: String, required: true },//this is hashed
   
   role: {
     type: String,
@@ -20,4 +22,21 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
+//to be encrypted before db save
+UserSchema.pre("save", function (next) {
+  if (this.isModified("email")) {
+    this.email = encrypt(this.email);
+  }
+  next();
+});
+
+
+// to be decrypted before returning to user
+UserSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+
+  if (obj.email) obj.email = decrypt(obj.email);
+  return obj;
+};
+//only email is to be encrypted here
 module.exports = mongoose.model("User", UserSchema);

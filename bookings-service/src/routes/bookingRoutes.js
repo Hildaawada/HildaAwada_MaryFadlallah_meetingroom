@@ -8,7 +8,7 @@ const auth = require("../middleware/auth");
 const adminAuth = require("../middleware/adminAuth");
 const managerAuth = require("../middleware/managerAuth");
 const auditorAuth = require("../middleware/auditorAuth");
-const serviceAuth = require("../middleware/serviceAuth");
+const serviceAuth = require("../middleware/serviceAuth");// not needed here, only in the room service
 const moderatorAuth = require("../middleware/moderatorAuth");
 
 //Routes

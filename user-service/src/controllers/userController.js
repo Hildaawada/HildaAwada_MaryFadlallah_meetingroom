@@ -4,8 +4,7 @@ const jwt = require("jsonwebtoken");
 
 
 // REGISTER USER
-
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   try {
     const { name, username, email, password, role } = req.body;
 
@@ -19,32 +18,37 @@ exports.register = async (req, res) => {
       role
     });
 
-    res.status(201).json({
+    return res.status(201).json({
+      success: true,
       message: "User registered successfully",
       user
     });
 
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);  // Send error to global handler
   }
 };
 
 
 // LOGIN USER
-
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
     const user = await User.findOne({ username });
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ message: "Incorrect password" });
+    if (!isMatch) {
+      const error = new Error("Incorrect password");
+      error.statusCode = 401;
+      throw error;
+    }
 
-    // Generate JWT token
     const token = jwt.sign(
       {
         id: user._id,
@@ -55,71 +59,111 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.json({
+    return res.json({
+      success: true,
       message: "Login successful",
       token,
       role: user.role
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 
-// GET ALL USERS (ADMIN, MANAGER, AUDITOR)
-
-exports.getAllUsers = async (req, res) => {
-  const users = await User.find();
-  res.json(users);
-};
-
-
-// GET SPECIFIC USER BY USERNAME
-
-exports.getUserByUsername = async (req, res) => {
-  const user = await User.findOne({ username: req.params.username });
-  res.json(user);
-};
-
-//UPDATE USER (SELF, ADMIN, MANAGER)
-
-exports.updateUser = async (req, res) => {
-
-  if (req.body.password) {
-    req.body.password = await bcrypt.hash(req.body.password, 10);
+// GET ALL USERS
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find();
+    return res.json({ success: true, users });
+  } catch (err) {
+    next(err);
   }
-
-  const updatedUser = await User.findOneAndUpdate(
-    { username: req.params.username },
-    req.body,
-    { new: true }
-  );
-
-  res.json({
-    message: "User updated successfully",
-    updatedUser
-  });
 };
 
 
-// DELETE USER (ADMIN ONLY)
+// GET USER BY USERNAME
+exports.getUserByUsername = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
 
-exports.deleteUser = async (req, res) => {
-  await User.deleteOne({ username: req.params.username });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
-  res.json({
-    message: "User deleted successfully"
-  });
+    return res.json({ success: true, user });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// UPDATE USER
+exports.updateUser = async (req, res, next) => {
+  try {
+    if (req.body.password) {
+      req.body.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { username: req.params.username },
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return res.json({
+      success: true,
+      message: "User updated successfully",
+      updatedUser
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// DELETE USER
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const result = await User.deleteOne({ username: req.params.username });
+
+    if (result.deletedCount === 0) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return res.json({
+      success: true,
+      message: "User deleted successfully"
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 
 // USER BOOKING HISTORY (PLACEHOLDER)
-// Will be implemented when Bookings Service is ready
-
-exports.getUserBookingHistory = async (req, res) => {
-  res.json({
-    message: "Booking history placeholder. Will fetch from Bookings Service later.",
-    username: req.params.username
-  });
+exports.getUserBookingHistory = async (req, res, next) => {
+  try {
+    return res.json({
+      success: true,
+      message: "Booking history placeholder.",
+      username: req.params.username
+    });
+  } catch (err) {
+    next(err);
+  }
 };

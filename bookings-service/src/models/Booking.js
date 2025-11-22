@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { encrypt, decrypt } = require("../utils/crypto");
+
 
 const bookingsSchema = new mongoose.Schema(
   { 
@@ -25,9 +27,13 @@ const bookingsSchema = new mongoose.Schema(
     },
     //this is to allow admins and managers to block room bookings even if it is available.
     BlockBooking: { type: Boolean, default: false },          
-    blockReason: { type: String, default: null } 
+    blockReason: { type: String, default: null, set: encrypt, get: decrypt } 
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true }
+   }
 );
 
 module.exports = mongoose.model("Bookings", bookingsSchema);
