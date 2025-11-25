@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const axios = require("axios");
 
 // REGISTER USER
 exports.register = async (req, res, next) => {
@@ -155,15 +155,28 @@ exports.deleteUser = async (req, res, next) => {
 };
 
 
-// USER BOOKING HISTORY (PLACEHOLDER)
-exports.getUserBookingHistory = async (req, res, next) => {
+// USER BOOKING HISTORY
+exports.getUserBookingHistory = async (req, res) => {
   try {
+    const username = req.params.username;
+
+    const response = await axios.get(
+      `http://localhost:5003/api/bookings/history/user/${username}`,
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
+
     return res.json({
-      success: true,
-      message: "Booking history placeholder.",
-      username: req.params.username
+      username,
+      bookings: response.data
     });
+
   } catch (err) {
-    next(err);
+    console.error("Error fetching booking history:", err.toString());
+
+    return res.status(500).json({
+      error: "Failed to fetch booking history from bookings-service"
+    });
   }
 };

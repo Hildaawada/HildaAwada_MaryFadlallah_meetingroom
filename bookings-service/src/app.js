@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const DB = require('./database').connectDB;
 app.use(express.json());
+const apiLimiter = require("./middleware/rateLimiter");
+app.use(apiLimiter);
 
 const bookingsRoutes = require('./routes/bookingRoutes');
 

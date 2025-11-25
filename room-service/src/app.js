@@ -6,6 +6,8 @@ require("dotenv").config();
 
 // Middleware to read JSON body
 app.use(express.json());
+const apiLimiter = require("./middleware/rateLimiter");
+app.use(apiLimiter);
 
 const logMiddlewareAuth = require("./middleware/logauth");
 app.use(logMiddlewareAuth);

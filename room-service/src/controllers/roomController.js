@@ -1,5 +1,5 @@
 const Room = require("../models/Room");
-
+const cache = require("../utils/cache");
 
 
 exports.checkRoomExistsInternal = async (req, res,next) => {
@@ -132,19 +132,37 @@ exports.deleteRoom = async (req, res,next) => {
   }
 };
 
+// GET ALL ROOMS (Everyone) with cachinggg
 
-// GET ALL ROOMS (Everyone)
-
-exports.getAllRooms = async (req, res,next) => {
+exports.getAllRooms = async (req, res, next) => {
   try {
+    // Check cache first
+    const cachedRooms = cache.get("allRooms");
+
+    if (cachedRooms) {
+      return res.json({
+        success: true,
+        source: "cache",
+        rooms: cachedRooms
+      });
+    }
+
+    // If not in cache we fetch from DB
     const rooms = await Room.find();
-    return res.json({ success: true, rooms });
+
+    // Save to cache
+    cache.set("allRooms", rooms);
+
+    return res.json({
+        success: true,
+        source: "database",
+        rooms
+    });
 
   } catch (err) {
     next(err);
   }
 };
-
 // GET ONE ROOM (Everyone)
 
 exports.getRoomById = async (req, res) => {

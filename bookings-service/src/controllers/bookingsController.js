@@ -1,4 +1,5 @@
 const axios = require("axios");
+const breaker = require("../utils/circuitBreaker");
 const Bookings = require("../models/Booking");
 
 // this is to handle both bookingID and bookingId 
@@ -26,20 +27,24 @@ function formatBooking(b) {
 //verify that the room to be reserved is already in our room database(connected to room service) 
 async function verifyRoomExists(roomID) {
   try {
-    const res = await axios.get(
-      `${process.env.ROOM_SERVICE_URL}/internal/${roomID}`,
-      {
-        headers: {
-          "x-service-key": process.env.SERVICE_KEY //.env token to communicate with room service database
-        }
-      }
-    );
+    const response = await breaker.fire({
+      method: "GET",
+      url: `${process.env.ROOM_SERVICE_URL}/internal/${String(roomID)}`,
+      headers: { "x-service-key": process.env.SERVICE_KEY }
+    });
 
-    return res.data.exists === true;
+    // Circuit breaker fallback:
+    if (response.fallback === true) {
+      return { exists: false, error: response.message, breaker: true };
+    }
+
+    return { exists: response.data.exists === true, breaker: false };
+
   } catch (err) {
-    return false;
+    return { exists: false, error: err.message, breaker: true };
   }
 }
+
 
 // when testing if services are connected, we noticed that bookings status for rooms is not linked
 //this function is to ensure when a room is booked from this service, it will be changed in the room-service
@@ -123,8 +128,27 @@ exports.blockRoom = async (req, res,next) => {
     if (isNaN(start) || isNaN(end) || start >= end) 
         throw new Error("Invalid time range");
 
-    const exists = await verifyRoomExists(roomID);
-    if (!exists)  throw new Error("Room does not exist");
+    
+
+  async function verifyRoomExists(roomID) {
+  try {
+    const response = await breaker.fire({
+      method: "GET",
+      url: `${process.env.ROOM_SERVICE_URL}/internal/${String(roomID)}`,
+      headers: { "x-service-key": process.env.SERVICE_KEY }
+    });
+
+    // If fallback returned:
+    if (response.fallback === true) {
+      return { exists: false, error: response.message, breaker: true };
+    }
+
+    return { exists: response.data.exists === true, breaker: false };
+
+  } catch (err) {
+    return { exists: false, error: err.message, breaker: true };
+  }
+}
 
     const overlapping = await Bookings.findOne({
       roomID,
@@ -183,8 +207,14 @@ exports.checkforAvailability = async (req, res,next) => {
 
     if (!roomID || !checkin || !checkout)  throw new Error("roomID, checkin, checkout required");
 
-    const exists = await verifyRoomExists(roomID);
-    if (!exists) throw new Error("This room does not exist");
+   const result = await verifyRoomExists(roomID);
+
+if (!result.exists) {
+  return res.status(500).json({
+    success: false,
+    error: result.breaker ? result.error : "This room does not exist"
+  });
+}
 
     const start = new Date(checkin);
     const end = new Date(checkout);
@@ -416,5 +446,20 @@ exports.getAllBookingsHistory = async (req, res,next) => {
     res.json(formatted);
   } catch (err) {
     next(err);
+  }
+};
+
+
+exports.getBookingsByUser = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const bookings = await Bookings.find({ username }).sort({ checkin: 1 });
+
+    return res.json(bookings);
+
+  } catch (err) {
+    console.error("getBookingsByUser error:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

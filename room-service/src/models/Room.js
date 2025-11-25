@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const roomSchema = new mongoose.Schema(
   {
-     roomID: {
+    roomID: {
       type: String,
       required: true,
       unique: true
@@ -20,7 +20,7 @@ const roomSchema = new mongoose.Schema(
     },
 
     equipment: {
-      type: [String],    
+      type: [String],
       default: []
     },
 
@@ -28,14 +28,26 @@ const roomSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-//shows if blocked by admins, next booking or if it is available, adjusted when all project is combined 
+
     status: {
       type: String,
-      default: "available" 
+      default: "available"
     },
-
-  },
+   },
   { timestamps: true }
 );
+
+// Adding indecies for optimized queries
+// Search room by name
+roomSchema.index({ name: 1 });
+
+// Filter by capacity
+roomSchema.index({ capacity: 1 });
+
+// Filter by location
+roomSchema.index({ location: 1 });
+
+// Check availability
+roomSchema.index({ status: 1 });
 
 module.exports = mongoose.model("Room", roomSchema);

@@ -3,6 +3,8 @@ const app = express();
 const DB = require('./database').connectDB;
 
 app.use(express.json());
+const { apiLimiter } = require("./middleware/rateLimiter");
+app.use(apiLimiter); 
 
 
 const userRoutes = require('./routes/userRoutes');

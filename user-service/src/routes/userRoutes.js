@@ -9,10 +9,13 @@ const adminAuth = require("../middleware/adminAuth");
 const managerAuth = require("../middleware/managerAuth");
 const moderatorAuth = require("../middleware/moderatorAuth");
 const auditorAuth = require("../middleware/auditorAuth");
+const { loginLimiter } = require("../middleware/rateLimiter");
+
 
 //Routes
 router.post("/register", controller.register);
-router.post("/login", controller.login);
+
+router.post("/login", loginLimiter, controller.login);
 
 router.get("/", auth, auditorAuth, controller.getAllUsers);       // Admin + Auditor
 router.get("/:username", auth, controller.getUserByUsername);    // Any logged-in user

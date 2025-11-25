@@ -39,4 +39,16 @@ UserSchema.methods.toJSON = function () {
   return obj;
 };
 //only email is to be encrypted here
+
+//adding the indices for optimized queries
+// For login / lookups
+UserSchema.index({ username: 1 });
+
+// For email-based lookups
+UserSchema.index({ email: 1 });
+
+// Useful for filtering users by role
+UserSchema.index({ role: 1 });
+
+
 module.exports = mongoose.model("User", UserSchema);
