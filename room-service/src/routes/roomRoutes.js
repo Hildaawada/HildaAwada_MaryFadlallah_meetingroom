@@ -22,24 +22,19 @@ const serviceAuth = require("../middleware/serviceAuth");
 router.get("/internal/:roomID",serviceAuth,controller.checkRoomExistsInternal);
 router.patch("/internal/:roomID/status", serviceAuth, internalChangeStatus);
 
-// ALL ROUTES REQUIRE AUTH (recommended)
-
 router.use(auth);   // protects everything
-
-
-// PUBLIC (ANY AUTHENTICATED ROLE)
 
 router.get("/", getAllRooms); 
 router.get("/search", searchRooms);
 router.get("/:id", getRoomById);
 
-// ADMIN + MANAGER
+// functions only for admin and manager
 
 router.post("/", managerAuth, addRoom);
 router.put("/:id", managerAuth, updateRoom);
 router.patch("/:id/status", managerAuth, changeStatus);
 
-// ADMIN ONLY
+// function only for admin
 
 router.delete("/:id", adminAuth, deleteRoom);
 

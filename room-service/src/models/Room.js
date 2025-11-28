@@ -38,6 +38,7 @@ const roomSchema = new mongoose.Schema(
 );
 
 // Adding indecies for optimized queries
+
 // Search room by name
 roomSchema.index({ name: 1 });
 

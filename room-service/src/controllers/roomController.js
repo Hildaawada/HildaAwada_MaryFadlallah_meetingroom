@@ -54,7 +54,7 @@ exports.internalChangeStatus = async (req, res,next) => {
 };
 
 
-// ADD ROOM (Admin + Manager only)
+
 exports.addRoom = async (req, res,next) => {
   try {
     // Only admin or manager allowed
@@ -77,8 +77,7 @@ exports.addRoom = async (req, res,next) => {
 };
 
 
-// UPDATE ROOM (Admin + Manager only)
-
+// update room only by admin or manager
 exports.updateRoom = async (req, res,next) => {
   try {
     if (!["admin", "manager"].includes(req.user.role)) {
@@ -107,7 +106,7 @@ exports.updateRoom = async (req, res,next) => {
 };
 
 
-// DELETE ROOM (Admin only)
+// delete room only allowed by admin
 
 exports.deleteRoom = async (req, res,next) => {
   try {
@@ -132,8 +131,7 @@ exports.deleteRoom = async (req, res,next) => {
   }
 };
 
-// GET ALL ROOMS (Everyone) with cachinggg
-
+// get all rooms (Everyone) with caching (opyimization)
 exports.getAllRooms = async (req, res, next) => {
   try {
     // Check cache first
@@ -182,7 +180,7 @@ exports.getRoomById = async (req, res) => {
   }
 };
 
-// SEARCH ROOMS (Everyone)
+// search rooms by everyone
 // Users can search by: capacity, location, equipment, status
 
 exports.searchRooms = async (req, res,next) => {
@@ -207,7 +205,7 @@ exports.searchRooms = async (req, res,next) => {
   }
 };
 
-// CHANGE ROOM STATUS (Admin + Manager)
+// change room status by admin or manager
 // ex: available / booked / out-of-service
 
 exports.changeStatus = async (req, res,next) => {

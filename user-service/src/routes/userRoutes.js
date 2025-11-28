@@ -17,12 +17,13 @@ router.post("/register", controller.register);
 
 router.post("/login", loginLimiter, controller.login);
 
-router.get("/", auth, auditorAuth, controller.getAllUsers);       // Admin + Auditor
-router.get("/:username", auth, controller.getUserByUsername);    // Any logged-in user
-router.put("/:username", auth, controller.updateUser);           // Self or admin
-router.delete("/:username", auth, adminAuth, controller.deleteUser); // Admin only
+//adding every function with its auth middleware
+router.get("/", auth, auditorAuth, controller.getAllUsers);      
+router.get("/:username", auth, controller.getUserByUsername);   
+router.put("/:username", auth, controller.updateUser);           
+router.delete("/:username", auth, adminAuth, controller.deleteUser); 
 
-// BOOKING HISTORY (requires login)
+// booking history route
 router.get("/:username/bookings", auth, controller.getUserBookingHistory);
 
 module.exports = router;

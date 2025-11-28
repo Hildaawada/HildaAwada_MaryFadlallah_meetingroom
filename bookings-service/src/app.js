@@ -1,29 +1,26 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const DB = require('./database').connectDB;
+require("dotenv").config();
+
+// middleware
 app.use(express.json());
 const apiLimiter = require("./middleware/rateLimiter");
 app.use(apiLimiter);
-
-const bookingsRoutes = require('./routes/bookingRoutes');
-
-app.use('/v1/Bookings', bookingsRoutes);
-app.use('/api/Bookings', bookingsRoutes);
 const logMiddlewareAuth = require("./middleware/logauth");
 app.use(logMiddlewareAuth);
 
-require('dotenv').config();  
+// routes
+const bookingsRoutes = require("./routes/bookingRoutes");
+app.use("/v1/Bookings", bookingsRoutes);
+app.use("/api/Bookings", bookingsRoutes);
 
+// error handler
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
-DB();
-
-app.listen(process.env.PORT, () => {
-    console.log(`Bookings Service is running on port ${process.env.PORT}`);
-
+// health route
 app.get("/health", (req, res) => {
   res.json({ service: "bookings", status: "ok" });
 });
 
-});
+module.exports = app;

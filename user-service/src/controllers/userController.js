@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
-// REGISTER USER
+// register the userr
 exports.register = async (req, res, next) => {
   try {
     const { name, username, email, password, role } = req.body;
@@ -25,12 +25,12 @@ exports.register = async (req, res, next) => {
     });
 
   } catch (err) {
-    next(err);  // Send error to global handler
+    next(err);  
   }
 };
 
 
-// LOGIN USER
+// login user function
 exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -156,6 +156,8 @@ exports.deleteUser = async (req, res, next) => {
 
 
 // USER BOOKING HISTORY
+
+// Fetch booking history from bookings-service for a specific user using an internall API call
 exports.getUserBookingHistory = async (req, res) => {
   try {
     const username = req.params.username;

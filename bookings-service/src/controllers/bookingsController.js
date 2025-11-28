@@ -171,6 +171,7 @@ exports.blockRoom = async (req, res,next) => {
       blockReason: blockReason || "Room unavailable"
     });
 
+    
     await updateRoomStatusBasedOnBookings(roomID);
     res.status(201).json({ message: "Room blocked", block });
       } catch (err) {
@@ -191,7 +192,7 @@ exports.unblockRoom = async (req, res,next) => {
     const roomID = block.roomID;
 
     await Bookings.findByIdAndDelete(blockID);
-
+    
     await updateRoomStatusBasedOnBookings(roomID);// TO CHANGE IT IN THE ROOMS DATABASE
 
     return res.json({ message: "The block is removed successfully" });
@@ -275,6 +276,7 @@ exports.createBooking = async (req, res,next) => {
       status: "confirmed",
       BlockBooking: false,
     });
+
     await updateRoomStatusBasedOnBookings(roomID);
     res.status(201).json(booking);
   } catch (err) {
@@ -316,7 +318,6 @@ exports.updateMyBooking = async (req, res,next) => {
     if (booking.checkin >= booking.checkout) throw new Error("Invalid time range");
 
 
-
     const conflict = await Bookings.findOne({
       _id: { $ne: booking._id },
       roomID: booking.roomID,
@@ -328,6 +329,7 @@ exports.updateMyBooking = async (req, res,next) => {
     if (conflict) throw new Error("This new time is not available for booking");
 
     await booking.save();
+    const roomID = booking.roomID;
     await updateRoomStatusBasedOnBookings(roomID);
     res.json(booking);
   } catch (err) {
@@ -347,6 +349,8 @@ exports.cancelMyBooking = async (req, res,next) => {
 
     booking.status = "cancelled";
     await booking.save();
+
+    const roomID = booking.roomID;
 
     await updateRoomStatusBasedOnBookings(roomID);
     res.json({ message: "Booking cancelled", booking });
@@ -395,11 +399,11 @@ exports.cancelBooking = async (req, res, next) => {
     const booking = await Bookings.findById(id);
     if (!booking) throw new Error("Booking not found");
 
-    const roomID = booking.roomID; // FIXED
+    const roomID = booking.roomID; 
 
     booking.status = "cancelled";
     await booking.save();
-
+    
     await updateRoomStatusBasedOnBookings(roomID);
     return res.json({ message: "Booking cancelled by admin", booking });
 
@@ -416,7 +420,7 @@ exports.overrideCancelBooking = async (req, res, next) => {
     const booking = await Bookings.findById(id);
     if (!booking) throw new Error("Booking not found");
 
-    const roomID = booking.roomID; // FIXED
+    const roomID = booking.roomID; 
 
     booking.status = "cancelled";
     await booking.save();
