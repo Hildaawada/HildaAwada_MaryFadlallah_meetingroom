@@ -42,4 +42,6 @@ router.delete("/admin/block-room/:blockID",auth,adminAuth,managerAuth,controller
 // FULL HISTORY
 router.get("/history",auth,adminAuth,auditorAuth,controller.getAllBookingsHistory);
 
+router.get("/history/user/:username", auth, controller.getBookingsByUser);
+
 module.exports = router;

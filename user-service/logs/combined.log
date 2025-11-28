@@ -1,0 +1,8 @@
+{"level":"info","message":{"method":"GET","responseTime":"4ms","status":404,"url":"/api/users/ahmad/booking","user":"anonymous"},"timestamp":"2025-11-23T17:01:21.767Z"}
+{"level":"info","message":{"method":"GET","responseTime":"12ms","status":404,"url":"/","user":"anonymous"},"timestamp":"2025-11-28T14:01:14.372Z"}
+{"level":"info","message":{"method":"GET","responseTime":"1ms","status":404,"url":"/","user":"anonymous"},"timestamp":"2025-11-28T14:01:39.196Z"}
+{"level":"info","message":{"method":"GET","responseTime":"1ms","status":404,"url":"/","user":"anonymous"},"timestamp":"2025-11-28T14:01:56.306Z"}
+{"level":"info","message":{"method":"GET","responseTime":"1ms","status":404,"url":"/favicon.ico","user":"anonymous"},"timestamp":"2025-11-28T14:02:27.988Z"}
+{"level":"info","message":{"method":"GET","responseTime":"2ms","status":404,"url":"/health","user":"anonymous"},"timestamp":"2025-11-28T14:11:00.555Z"}
+{"level":"info","message":{"method":"GET","responseTime":"1ms","status":404,"url":"/","user":"anonymous"},"timestamp":"2025-11-28T14:11:13.064Z"}
+{"level":"info","message":{"method":"GET","responseTime":"2ms","status":404,"url":"/test","user":"anonymous"},"timestamp":"2025-11-28T14:15:31.584Z"}

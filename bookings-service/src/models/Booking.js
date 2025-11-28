@@ -36,4 +36,19 @@ const bookingsSchema = new mongoose.Schema(
    }
 );
 
+
+
+// Get booking history fast
+bookingsSchema.index({ username: 1 });
+
+// Check room availability fast
+bookingsSchema.index({ roomID: 1 });
+
+// Time-based indexing for filtering
+bookingsSchema.index({ checkin: 1 });
+bookingsSchema.index({ checkout: 1 });
+
+// Show confirmed/cancelled bookings quickly
+bookingsSchema.index({ status: 1 });
+
 module.exports = mongoose.model("Bookings", bookingsSchema);

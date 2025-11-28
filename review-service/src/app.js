@@ -1,23 +1,25 @@
-require('dotenv').config();  
-const express = require('express');
+// src/app.js
+require("dotenv").config();
+const express = require("express");
 const app = express();
-const DB = require('./database').connectDB;
+
 app.use(express.json());
 
-const reviewRoutes = require('./routes/reviewRoutes');
+// rate limiter
+const apiLimiter = require("./middleware/rateLimiter");
+app.use(apiLimiter);
 
-app.use('/v1/Review', reviewRoutes);
-app.use('/api/Review', reviewRoutes);
-
+// logging
 const logMiddlewareAuth = require("./middleware/logauth");
 app.use(logMiddlewareAuth);
 
+// routes
+app.use('/test', require('./routes/testRoutes'));
+app.use("/v1/Review", require("./routes/reviewRoutes"));
+app.use("/api/Review", require("./routes/reviewRoutes"));
+
+// error handler
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
-DB();
 
-app.listen(process.env.PORT, () => {
-    console.log(`Review Service is running on port ${process.env.PORT}`);
-
-
-});
+module.exports = app;

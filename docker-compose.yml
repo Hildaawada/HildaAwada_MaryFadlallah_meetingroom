@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - ./user-service:/app
+    depends_on:
+      - mongo
+
+  room-service:
+    build: ./room-service
+    container_name: room-service
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./room-service/.env
+    volumes:
+      - ./room-service:/app
+    depends_on:
+      - mongo
+
+  booking-service:
+    build: ./bookings-service
+    container_name: booking-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./bookings-service/.env
+    volumes:
+      - ./bookings-service:/app
+    depends_on:
+      - mongo
+
+  review-service:
+    build: ./review-service
+    container_name: review-service
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./review-service/.env
+    volumes:
+      - ./review-service:/app
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

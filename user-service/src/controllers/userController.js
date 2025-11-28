@@ -1,9 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
 
-
-// REGISTER USER
+// register the userr
 exports.register = async (req, res, next) => {
   try {
     const { name, username, email, password, role } = req.body;
@@ -25,12 +25,12 @@ exports.register = async (req, res, next) => {
     });
 
   } catch (err) {
-    next(err);  // Send error to global handler
+    next(err);  
   }
 };
 
 
-// LOGIN USER
+// login user function
 exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -155,15 +155,30 @@ exports.deleteUser = async (req, res, next) => {
 };
 
 
-// USER BOOKING HISTORY (PLACEHOLDER)
-exports.getUserBookingHistory = async (req, res, next) => {
+// USER BOOKING HISTORY
+
+// Fetch booking history from bookings-service for a specific user using an internall API call
+exports.getUserBookingHistory = async (req, res) => {
   try {
+    const username = req.params.username;
+
+    const response = await axios.get(
+      `http://localhost:5003/api/bookings/history/user/${username}`,
+      {
+        headers: { Authorization: req.headers.authorization }
+      }
+    );
+
     return res.json({
-      success: true,
-      message: "Booking history placeholder.",
-      username: req.params.username
+      username,
+      bookings: response.data
     });
+
   } catch (err) {
-    next(err);
+    console.error("Error fetching booking history:", err.toString());
+
+    return res.status(500).json({
+      error: "Failed to fetch booking history from bookings-service"
+    });
   }
 };
