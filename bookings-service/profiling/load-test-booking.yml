@@ -1,0 +1,52 @@
+config:
+  target: "http://localhost:5003"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+
+scenarios:
+  - name: "Bookings Full Test for room B2 - Bech 101"
+    flow:
+
+      - get:
+          url: "/api/bookings/check?roomID=B2&checkin=2025-12-01T09:00:00Z&checkout=2025-12-01T12:00:00Z"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+
+
+      - post:
+          url: "/api/bookings"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+          json:
+            roomID: "B2"
+            checkin: "2025-12-02T14:00:00Z"
+            checkout: "2025-12-02T16:00:00Z"
+
+      - get:
+          url: "/api/bookings/mybookings"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+
+
+      - get:
+          url: "/api/bookings/room/B2"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+
+ 
+      - get:
+          url: "/api/bookings/all"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+
+
+      - get:
+          url: "/api/bookings/history/all"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+
+      - get:
+          url: "/api/bookings/user/adminxx"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"

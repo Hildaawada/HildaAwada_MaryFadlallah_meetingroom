@@ -1,0 +1,23 @@
+config:
+  target: "http://localhost:5001"   
+  phases:
+    - duration: 30
+      arrivalRate: 10  
+
+scenarios:
+  - name: "User service load test"
+    flow:
+      - post:
+          url: "/api/users/register"
+          json:
+            name: "Mary"
+            username: "mary7"
+            email: "mary7@gmail.com"
+            password: "test1234"
+      - post:
+          url: "/api/users/login"
+          json:
+            username: "mary7"
+            password: "test1234"
+      - get:
+          url: "/api/users"

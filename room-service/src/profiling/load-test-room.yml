@@ -1,0 +1,27 @@
+config:
+  target: "http://localhost:5002"   
+  phases:
+    - duration: 30
+      arrivalRate: 10
+
+scenarios:
+  - name: "Room service load test"
+    flow:
+
+ 
+      - get:
+          url: "/api/rooms"
+      - get:
+          url: "/api/rooms/search?capacity=20&location=AUB"
+
+
+      - post:
+          url: "/api/rooms"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Mjg0MDc3ZTU5Y2MzNzAzZjM5NjdhMiIsInVzZXJuYW1lIjoiYWRtaW54eCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDMzOTg1NywiZXhwIjoxNzY0NDI2MjU3fQ.OXEIldDHiQjQ9juPMJRMj2fXP6lu0K9gad-Ktf0xeg8"
+          json:
+            roomID: "LoadTestRoom123"
+            capacity: 40
+            location: "LoadTestBuilding"
+            status: "available"
+            equipment: ["Projector", "Microphone"]
