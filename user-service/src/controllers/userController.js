@@ -1,9 +1,51 @@
+/**
+ * @module UserController
+ * @description
+ * User Service Controller  
+ * Handles all operations related to user authentication, authorization,
+ * profile management, and booking history retrieval.
+ *
+ * This module provides:
+ *  - User registration  
+ *  - User login  
+ *  - Update user profile 
+ *  - Delete user accounts  
+ *  - Retrieve all users (only admins)  
+ *  - Retrieve specific users (only admins)  
+ *  - Fetch booking history from Bookings Service (only admins) 
+ *
+ * All endpoints return standardized JSON responses and propagate
+ * errors to the global error handler.
+ */
+
+
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
-// REGISTER USER
+
+
+/**
+ * @function register
+ * @description
+ * Register a new user in the system and return a newly created user record.  
+ *
+ *To register, the following information are required: 
+ * @param {String} name.body.required - Full name of the user and it must be unique
+ * @param {String} email.body.required - Email address  
+ * @param {String} password.body.required - Password (it will be hashed when saved)  
+ * @param {String} role.body.optional - User role (default: "user")
+ * @example
+ * {
+ *  "name": "Mary Fadlallah",
+ *  "username": "mary_fad",
+ *  "email": "mary@gmail.com",
+ *  "password": "Finallygraduated2025"
+ * }
+ */
+
+
 exports.register = async (req, res, next) => {
   try {
     const { name, username, email, password, role } = req.body;
@@ -30,7 +72,22 @@ exports.register = async (req, res, next) => {
 };
 
 
-// LOGIN USER
+/**
+ * @function login
+ * @description
+ * Authenticate a user and return a token.
+ *
+ * @param {String} username.body.required - Username of the user  
+ * @param {String} password.body.required - password  
+ *
+ * @example
+ * {
+ *   "username": "mary_fad",
+ *   "password": "Finallygraduated2025"
+ * }
+ */
+
+
 exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -71,8 +128,16 @@ exports.login = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getAllUsers
+ * @description
+ * Retrieve a list of all users in the system for the admin review (&auditing purposes...).
+ *
+ */
 
-// GET ALL USERS
+
+
+
 exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -82,8 +147,16 @@ exports.getAllUsers = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getUserByUsername
+ * @description
+ * Fetch user details by username.
+ * 
+ * @param {String} username.params.required - Username to search for  
+ */
 
-// GET USER BY USERNAME
+
+
 exports.getUserByUsername = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.params.username });
@@ -102,7 +175,17 @@ exports.getUserByUsername = async (req, res, next) => {
 };
 
 
-// UPDATE USER
+/**
+ * @function updateUser
+ * @description
+ * Update user information. 
+ *
+ * @param {String} username.params.required - Username of the user  
+ * Note that passwords are re-hashed before saving.
+ */
+
+
+
 exports.updateUser = async (req, res, next) => {
   try {
     if (req.body.password) {
@@ -132,8 +215,15 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
+/**
+ * @function deleteUser
+ * @description
+ * Remove a user account from the system.
+ *
+ * @returns Success deletion message or an error message.  
+ */
 
-// DELETE USER
+
 exports.deleteUser = async (req, res, next) => {
   try {
     const result = await User.deleteOne({ username: req.params.username });
@@ -154,8 +244,14 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getUserBookingHistory
+ * @description
+ * By connecting to the bookings service, this function retrieves booking history for a specific user.
+ * @returns List of bookings belonging to the user or an error. 
+ */
 
-// USER BOOKING HISTORY
+
 exports.getUserBookingHistory = async (req, res) => {
   try {
     const username = req.params.username;
@@ -180,3 +276,7 @@ exports.getUserBookingHistory = async (req, res) => {
     });
   }
 };
+
+
+
+

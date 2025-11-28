@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Review Service Documentation &mdash; Meeting Room Microservices 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Bookings Service Documentation" href="bookings_service.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Meeting Room Microservices
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Services</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_service.html">User Service Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="room_service.html">Room Service Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bookings_service.html">Bookings Service Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Review Service Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#technology-stack">Technology Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#endpoints">Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submit-review">Submit Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-my-reviews">Get My Reviews</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-my-review">Update My Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delete-my-review">Delete My Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-room-reviews">Get Room Reviews</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flag-review">Flag Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hide-review">Hide Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unhide-review">Unhide Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-flagged-reviews">Get Flagged Reviews</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#internal-rating-summary">Internal Rating Summary</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Meeting Room Microservices</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Review Service Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/review_service.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="review-service-documentation">
+<h1>Review Service Documentation<a class="headerlink" href="#review-service-documentation" title="Link to this heading"></a></h1>
+<p>The <strong>Review Service</strong> manages room reviews, moderation, flagging,
+hiding, and rating analytics. It also validates rooms through
+inter-service communication.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#technology-stack" id="id2">Technology Stack</a></p></li>
+<li><p><a class="reference internal" href="#endpoints" id="id3">Endpoints</a></p>
+<ul>
+<li><p><a class="reference internal" href="#submit-review" id="id4">Submit Review</a></p></li>
+<li><p><a class="reference internal" href="#get-my-reviews" id="id5">Get My Reviews</a></p></li>
+<li><p><a class="reference internal" href="#update-my-review" id="id6">Update My Review</a></p></li>
+<li><p><a class="reference internal" href="#delete-my-review" id="id7">Delete My Review</a></p></li>
+<li><p><a class="reference internal" href="#get-room-reviews" id="id8">Get Room Reviews</a></p></li>
+<li><p><a class="reference internal" href="#flag-review" id="id9">Flag Review</a></p></li>
+<li><p><a class="reference internal" href="#hide-review" id="id10">Hide Review</a></p></li>
+<li><p><a class="reference internal" href="#unhide-review" id="id11">Unhide Review</a></p></li>
+<li><p><a class="reference internal" href="#get-flagged-reviews" id="id12">Get Flagged Reviews</a></p></li>
+<li><p><a class="reference internal" href="#internal-rating-summary" id="id13">Internal Rating Summary</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This microservice supports:</p>
+<ul class="simple">
+<li><p>Submitting room reviews</p></li>
+<li><p>Updating personal reviews</p></li>
+<li><p>Deleting personal reviews</p></li>
+<li><p>Admin deletion</p></li>
+<li><p>Flagging inappropriate reviews</p></li>
+<li><p>Hiding and un-hiding reviews</p></li>
+<li><p>Fetching room rating summary (average score)</p></li>
+</ul>
+</section>
+<section id="technology-stack">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Technology Stack</a><a class="headerlink" href="#technology-stack" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Node.js / Express</p></li>
+<li><p>MongoDB / Mongoose</p></li>
+<li><p>Axios (used for verifying room existence)</p></li>
+<li><p>Moderation logic</p></li>
+</ul>
+</section>
+<section id="endpoints">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Endpoints</a><a class="headerlink" href="#endpoints" title="Link to this heading"></a></h2>
+<section id="submit-review">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Submit Review</a><a class="headerlink" href="#submit-review" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/review</strong></p>
+<p>Validates room existence via Room Service before submission.</p>
+<p>Request Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;roomID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OXY-1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;comment&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Very clean and well equipped!&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-my-reviews">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Get My Reviews</a><a class="headerlink" href="#get-my-reviews" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/review/me</strong></p>
+<p>Returns all reviews submitted by the logged user.</p>
+</section>
+<section id="update-my-review">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Update My Review</a><a class="headerlink" href="#update-my-review" title="Link to this heading"></a></h3>
+<p><strong>PUT /api/v1/review/:reviewID</strong></p>
+<p>Update rating and/or comment.</p>
+</section>
+<section id="delete-my-review">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Delete My Review</a><a class="headerlink" href="#delete-my-review" title="Link to this heading"></a></h3>
+<p><strong>DELETE /api/v1/review/:reviewID</strong></p>
+<p>Deletes a personal review.</p>
+</section>
+<section id="get-room-reviews">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Get Room Reviews</a><a class="headerlink" href="#get-room-reviews" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/review/room/:roomID</strong></p>
+<p>Normal users see only unhidden reviews.
+Admins, auditors, moderators see <strong>all</strong> reviews.</p>
+</section>
+<section id="flag-review">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Flag Review</a><a class="headerlink" href="#flag-review" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/review/:reviewID/flag</strong></p>
+<p>Marks a review as inappropriate.</p>
+</section>
+<section id="hide-review">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Hide Review</a><a class="headerlink" href="#hide-review" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/review/:reviewID/hide</strong></p>
+<p>Makes a review invisible to regular users.</p>
+</section>
+<section id="unhide-review">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Unhide Review</a><a class="headerlink" href="#unhide-review" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/review/:reviewID/unhide</strong></p>
+<p>Undo hiding.</p>
+</section>
+<section id="get-flagged-reviews">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Get Flagged Reviews</a><a class="headerlink" href="#get-flagged-reviews" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/review/flagged</strong></p>
+<p>Used for moderation dashboards.</p>
+</section>
+<section id="internal-rating-summary">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Internal Rating Summary</a><a class="headerlink" href="#internal-rating-summary" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/review/internal/:roomID</strong></p>
+<p>Returns:</p>
+<ul class="simple">
+<li><p>number of reviews</p></li>
+<li><p>average rating</p></li>
+<li><p>list of visible reviews</p></li>
+</ul>
+<p>Example Response:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;roomID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OXY-1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;averageRating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bookings_service.html" class="btn btn-neutral float-left" title="Bookings Service Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

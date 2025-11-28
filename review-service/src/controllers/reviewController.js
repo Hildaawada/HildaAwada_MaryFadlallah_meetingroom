@@ -1,17 +1,51 @@
+/**
+ * @module ReviewController
+ * @description
+ * Handles all operations related to room reviews.
+ *  
+ * It manages:
+ *  - Submitting reviews
+ *  - Updating/deleting personal reviews
+ *  - Admin/moderator auditing actions (hide, unhide, flag, unflag)
+ *  - Fetching review data
+ *
+ * All functions propagate errors to the global error handler.
+ */
+
 const axios = require("axios");//TO CONNCT SERVICES 
 const Review = require("../models/review");
 
-// To be used in other functions below.
+/**
+ * @function isPrivilegedReviewer
+ * @description
+ * Checks whether a user role is allowed to see hidden reviews.
+ *  To be used in other functions below.
+ */
+
+
 function isPrivilegedReviewer(role) {
   return ["admin", "moderator", "auditor"].includes(role);
 }
 
-// to handle ID and Id errors
+/**
+ * @function getReviewIdFromParams
+ * @description
+ * Utility function to support both reviewID and reviewId parameter naming (handle errors).
+ */
+
 function getReviewIdFromParams(params) {
   return params.reviewID || params.reviewId;
 }
 
-// To ensure room exsits before reviewing
+/**
+ * @function verifyRoomExists
+ * @description
+ * Internal service-to-service validation to ensure a room exists
+ *
+ * @param {String} roomID - ID of the room  
+ * @returns {Boolean} true if room exists  
+ */
+
 async function verifyRoomExists(roomID) {
   try {
     const res = await axios.get(
@@ -28,7 +62,20 @@ async function verifyRoomExists(roomID) {
   }
 }
 
-// SUBMITTING A REVIEW 
+/**
+ * @function SubmitReview
+ * @description
+ * Submit a review for a specific room (ensure it exists before).
+ * Ensures rating validity.
+ *
+ * @example
+ * {
+ *   "roomID": "OXY-502",
+ *   "rating": 5,
+ *   "comment": "Amazing room, very clean"
+ * }
+ */
+
 exports.SubmitReview = async (req, res, next) => {
   try {
     const { roomID, rating, comment } = req.body;
@@ -66,8 +113,12 @@ exports.SubmitReview = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getMyReview
+ * @description
+ * Retrieve all reviews submitted by the user sorted by their creation time  
+ */
 
-//it shows all reviews by the user
 exports.getMyReview = async (req, res,next) => {
   try {
     const reviews = await Review.find({ username: req.user.username }).sort({
@@ -79,6 +130,12 @@ exports.getMyReview = async (req, res,next) => {
   }
 };
 
+/**
+ * @function updateMyReview
+ * @description
+ * Allows a user to edit their own review (they can edit both rating and comment).
+ *
+ */
 
 exports.updateMyReview = async (req, res,next) => {
   try {
@@ -118,6 +175,14 @@ exports.updateMyReview = async (req, res,next) => {
   }
 };
 
+/**
+ * @function DeleteMyReview
+ * @description
+ * Delete a review permanently.
+ * Users are allowed to deleted their own reviews only.
+ *
+ * @param {String} reviewID.params.required  
+ */
 
 exports.DeleteMyReview = async (req, res,next) => {
   try {
@@ -158,7 +223,14 @@ exports.DeleteMyReview = async (req, res,next) => {
 };
 
 
-//everyone is allowed to see unhidden 
+/**
+ * @function getRoomReviews
+ * @description
+ * Retrieve all reviews (except hidden ones) for a specific room.
+ * Hidden reviews are visible only to admin, moderator, and auditor roles.
+ *
+ */
+
 exports.getRoomReviews = async (req, res, next) => {
   try {
     const { roomID } = req.params;
@@ -182,6 +254,12 @@ exports.getRoomReviews = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getAllReviews
+ * @description
+ * This function is only for admin/auditor purposes.
+ * Retrieve all available reviews in the database.
+ */
 
 exports.getAllReviews = async (req, res,next) => {
   try {
@@ -192,8 +270,14 @@ exports.getAllReviews = async (req, res,next) => {
   }
 };
 
+/**
+ * @function DeleteReview
+ * @description
+ * This is only for admins to delete any review.
+ *
+ * @param {String} reviewID.params.required  
+ */
 
-//just for admins
 exports.DeleteReview = async (req, res, next) => {
   try {
     const reviewID = getReviewIdFromParams(req.params);
@@ -219,7 +303,15 @@ exports.DeleteReview = async (req, res, next) => {
   }
 };
 
-//flagged reviews can be seen by regular users when searching room reviews but they are marked as flagged
+/**
+ * @function flagReview
+ * @description
+ * Admins/Moderators can flag a review for inappropriate content.
+ *
+ * @param {String} reviewID.params.required  
+ * @param {String} why.body.optional - Reason for flagging  
+ */
+
 exports.flagReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
@@ -244,6 +336,12 @@ exports.flagReview = async (req, res, next) => {
   }
 };
 
+/**
+ * @function unflagReview
+ * @description
+ * Remove a flag from a review.
+ */
+
 exports.unflagReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
@@ -267,6 +365,12 @@ exports.unflagReview = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getFlaggedReviews
+ * @description
+ * Retrieve all reviews that have been flagged.
+ */
+
 exports.getFlaggedReviews = async (req, res, next) => {
   try {
     const reviews = await Review.find({ flagged: true }).sort({
@@ -278,6 +382,12 @@ exports.getFlaggedReviews = async (req, res, next) => {
   }
 };
 
+/**
+ * @function HideReview
+ * @description
+ * Hide a review from public visibility.
+ * Visible only to admins/managers/auditors.
+ */
 
 exports.HideReview = async (req, res, next) => {
   try {
@@ -301,6 +411,12 @@ exports.HideReview = async (req, res, next) => {
   }
 };
 
+/**
+ * @function UnhideReview
+ * @description
+ * Restore visibility of a previously hidden review.
+ */
+
 exports.UnhideReview = async (req, res, next) => {
   try {
     const { reviewID } = req.params;
@@ -322,6 +438,17 @@ exports.UnhideReview = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * @function InternalGetRoomReviews
+ * @description
+ * Internal endpoint to fetch:
+ *  - Visible reviews 
+ *  - Count of reviews
+ *  - Average rating
+ *
+ * @param {String} roomID.params.required  
+ */
 
 exports.InternalGetRoomReviews = async (req, res, next) => {
   try {

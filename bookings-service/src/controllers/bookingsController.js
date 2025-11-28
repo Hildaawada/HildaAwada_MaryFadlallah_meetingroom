@@ -1,13 +1,40 @@
+/**
+ * @module BookingsController
+ * @description
+ * Manages all operations related to meeting room reservations, including:
+ *
+ *  - Standard user bookings
+ *  - Date-conflict validation
+ *  - Automatic room state synchronization with Room Service
+ *  - Admin/Manager forced blocks & unblocks
+ *  - Circuit breaker protected service-to-service communication
+ *  - User and room based filtering
+ *
+ * This controller is critical in the microservices architecture:
+ * it is the only service allowed to modify room status through
+ * internal authenticated service calls.
+ */
+
 const axios = require("axios");
 const breaker = require("../utils/circuitBreaker");
 const Bookings = require("../models/Booking");
 
-// this is to handle both bookingID and bookingId 
+/**
+ * @function getBookingIdFromParams
+ * @description
+ * Support both `bookingID` and `bookingId` parameter variations.(avoid unwanted errors) 
+ */
 function getBookingIdFromParams(params) {
   return params.bookingID || params.bookingId;
 }
 
-//when testing in postmann I noticed the roomID is not displayed first, so this is to align display
+/**
+ * @function formatBooking
+ * @description
+ * Normalizes display format for consistent API responses.
+ *
+ */
+
 function formatBooking(b) {
   if (!b) return null;
   return {
@@ -23,8 +50,16 @@ function formatBooking(b) {
     updatedAt: b.updatedAt
   };
 }
-
-//verify that the room to be reserved is already in our room database(connected to room service) 
+/**
+ * @function verifyRoomExists
+ * @description
+ * Validates a roomID by calling the Room Service internally.
+ *
+ * This function uses the **circuit breaker**, ensuring:
+ *  - immediate fallback when Room Service is overloaded
+ *  - protection of this service from cascading failures
+ *
+ */
 async function verifyRoomExists(roomID) {
   try {
     const response = await breaker.fire({
@@ -44,12 +79,22 @@ async function verifyRoomExists(roomID) {
     return { exists: false, error: err.message, breaker: true };
   }
 }
+/**
+ * @function updateRoomStatusBasedOnBookings
+ * @description
+ * Updates a room’s status in the Room Service based on:
+ *  - Upcoming confirmed bookings  
+ *  - Automatic cleanup of expired bookings  
+ *  - Default fallback => "available"
+ *
+ * This method is executed:
+ *  - after bookings  
+ *  - after block/unblock  
+ *  - after booking cancel  
+ *
+ * @param {String} roomID  
+ */
 
-
-// when testing if services are connected, we noticed that bookings status for rooms is not linked
-//this function is to ensure when a room is booked from this service, it will be changed in the room-service
-// after testing, I noticed that the status should be like that: if blocked shows the block+date, show the upcoming nearesr booking and if available
-//that's why I also change the room schema
 async function updateRoomStatusBasedOnBookings(roomID) {
   try {
     const now = new Date();
@@ -113,8 +158,15 @@ async function updateRoomStatusBasedOnBookings(roomID) {
   }
 }
 
+/**
+ * @function blockRoom
+ * @description
+ * Admin/Manager-only feature to block a room for a specific time range.
+ * A block is treated as a booking but marked with BlockBooking: true.
+ *
+ */
 
-//The admins can block users from booking the room even if it is available
+
 exports.blockRoom = async (req, res,next) => {
   try {
     const { roomID, checkin, checkout, blockReason } = req.body;
@@ -178,6 +230,13 @@ exports.blockRoom = async (req, res,next) => {
       }
     };
 
+/**
+ * @function unblockRoom
+ * @description
+ * Removes an existing admin block and restores room state.
+ *
+ * @param {String} blockID.params.required  
+ */
 exports.unblockRoom = async (req, res,next) => {
   try {
     const { blockID } = req.params;
@@ -200,7 +259,17 @@ exports.unblockRoom = async (req, res,next) => {
   }
 };
 
-//CHECK ROOM AVAILABIITY 
+/**
+ * @function checkforAvailability
+ * @description
+ * Check whether a room is available for a given time range.
+ *
+ * It uses circuit breaker fallback.
+ *
+ * @query {String} roomID  
+ * @query {Date} checkin  
+ * @query {Date} checkout  
+ */
 exports.checkforAvailability = async (req, res,next) => {
   try {
     const { roomID, checkin, checkout } = req.query;
@@ -237,7 +306,15 @@ if (!result.exists) {
     next(err);
   }
 };
-// THE USER BOOKING FN THAT ALSO TAKE INTO ACCOUNT IF THE ROOM IS BLOCKED OR ALREADY BOOKED
+
+/**
+ * @function createBooking
+ * @description
+ * Creates a standard user booking after checking conflicts(room already booked or blocked).
+ * Note:  
+ * Admin blocks override user bookings, but user bookings cannot override blocks.
+
+ */
 exports.createBooking = async (req, res,next) => {
   try {
     const { roomID, checkin, checkout } = req.body;
@@ -282,7 +359,12 @@ exports.createBooking = async (req, res,next) => {
   }
 };
 
-//shows users booking history
+/**
+ * @function getMyBookings
+ * @description
+ * Fetch users booking history
+ */
+
 exports.getMyBookings = async (req, res,next) => {
   try {
     const username = req.user?.username;
@@ -293,6 +375,14 @@ exports.getMyBookings = async (req, res,next) => {
     next(err);
   }
 };
+
+/**
+ * @function updateMyBooking
+ * @description
+ * This is to allow users to modify their own bookings if the new time slot is valid.
+ *
+ * @param {String} bookingID.params.required  
+ */
 
 exports.updateMyBooking = async (req, res,next) => {
   try {
@@ -335,6 +425,14 @@ exports.updateMyBooking = async (req, res,next) => {
   }
 };
 
+/**
+ * @function cancelMyBooking
+ * @description
+ * Allows users to cancel their own bookings.
+ *
+ * @param {String} bookingID.params.required  
+ */
+
 exports.cancelMyBooking = async (req, res,next) => {
   try {
     const id = getBookingIdFromParams(req.params);
@@ -354,6 +452,11 @@ exports.cancelMyBooking = async (req, res,next) => {
     next(err)
   }
 };
+/**
+ * @function getAllBookings
+ * @description
+ * Admin/Manager/Auditor function: retrieves all **active** bookings.
+ */
 
 exports.getAllBookings = async (req, res,next) => {
   try {
@@ -367,6 +470,13 @@ exports.getAllBookings = async (req, res,next) => {
     next(err);
   }
 };
+
+
+/**
+ * @function updateBooking
+ * @description
+ * Admin-only modification of any booking.
+ */
 
 exports.updateBooking = async (req, res,next) => {
   try {
@@ -388,6 +498,12 @@ exports.updateBooking = async (req, res,next) => {
   }
 };
 
+/**
+ * @function cancelBooking
+ * @description
+ * Admin cancellation of any user's booking.
+ */
+
 exports.cancelBooking = async (req, res, next) => {
   try {
     const id = getBookingIdFromParams(req.params);
@@ -408,6 +524,11 @@ exports.cancelBooking = async (req, res, next) => {
   }
 };
 
+/**
+ * @function overrideCancelBooking
+ * @description
+ * Force-cancels a booking regardless of current state.
+ */
 
 exports.overrideCancelBooking = async (req, res, next) => {
   try {
@@ -429,6 +550,13 @@ exports.overrideCancelBooking = async (req, res, next) => {
   }
 };
 
+/**
+ * @function getBookingsByRoom
+ * @description
+ * View the booking history of a specific room (admins only).
+ *
+ * @param {String} roomID.params.required  
+ */
 
 exports.getBookingsByRoom = async (req, res,next) => {
   try {
@@ -438,6 +566,12 @@ exports.getBookingsByRoom = async (req, res,next) => {
   } catch (err) {
     next(err);}
 };
+/**
+ * @function getAllBookingsHistory
+ * @description
+ * Returns **all bookings**, including cancelled ones.(only specific user roles are allowed to use it)
+ * Designed for auditing.
+ */
 
 exports.getAllBookingsHistory = async (req, res,next) => {
   try {
@@ -449,6 +583,13 @@ exports.getAllBookingsHistory = async (req, res,next) => {
   }
 };
 
+/**
+ * @function getBookingsByUser
+ * @description
+ * Fetch booking history for a specific user.
+ *
+ * @param {String} username.params.required  
+ */
 
 exports.getBookingsByUser = async (req, res) => {
   try {

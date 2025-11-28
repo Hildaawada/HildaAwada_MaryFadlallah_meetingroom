@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Service Documentation &mdash; Meeting Room Microservices 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Room Service Documentation" href="room_service.html" />
+    <link rel="prev" title="Meeting Room Microservices Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Meeting Room Microservices
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Services</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Service Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#technology-stack">Technology Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#endpoints">Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#register-user">Register User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#login-user">Login User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-all-users-admin">Get All Users (Admin)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-single-user">Get Single User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-user-profile">Update User Profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delete-user">Delete User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-user-booking-history">Get User Booking History</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="room_service.html">Room Service Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bookings_service.html">Bookings Service Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_service.html">Review Service Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Meeting Room Microservices</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">User Service Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/user_service.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="user-service-documentation">
+<h1>User Service Documentation<a class="headerlink" href="#user-service-documentation" title="Link to this heading"></a></h1>
+<p>The <strong>User Service</strong> handles all user-related operations including
+registration, authentication, account management, and retrieving
+booking history from the Bookings Service.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#technology-stack" id="id2">Technology Stack</a></p></li>
+<li><p><a class="reference internal" href="#endpoints" id="id3">Endpoints</a></p>
+<ul>
+<li><p><a class="reference internal" href="#register-user" id="id4">Register User</a></p></li>
+<li><p><a class="reference internal" href="#login-user" id="id5">Login User</a></p></li>
+<li><p><a class="reference internal" href="#get-all-users-admin" id="id6">Get All Users (Admin)</a></p></li>
+<li><p><a class="reference internal" href="#get-single-user" id="id7">Get Single User</a></p></li>
+<li><p><a class="reference internal" href="#update-user-profile" id="id8">Update User Profile</a></p></li>
+<li><p><a class="reference internal" href="#delete-user" id="id9">Delete User</a></p></li>
+<li><p><a class="reference internal" href="#get-user-booking-history" id="id10">Get User Booking History</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This microservice includes:</p>
+<ul class="simple">
+<li><p>User registration</p></li>
+<li><p>Secure password hashing</p></li>
+<li><p>Login &amp; JWT authentication</p></li>
+<li><p>Fetching all users (Admin only)</p></li>
+<li><p>Updating user profiles</p></li>
+<li><p>Deleting users</p></li>
+<li><p>Retrieving booking history via inter-service communication</p></li>
+</ul>
+</section>
+<section id="technology-stack">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Technology Stack</a><a class="headerlink" href="#technology-stack" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Node.js / Express</strong></p></li>
+<li><p><strong>MongoDB / Mongoose</strong></p></li>
+<li><p><strong>JWT Authentication</strong></p></li>
+<li><p><strong>Axios (service-to-service communication)</strong></p></li>
+</ul>
+</section>
+<section id="endpoints">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Endpoints</a><a class="headerlink" href="#endpoints" title="Link to this heading"></a></h2>
+<section id="register-user">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Register User</a><a class="headerlink" href="#register-user" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/users/register</strong></p>
+<p>Registers a new user.</p>
+<p><strong>Request Body</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>String</p></td>
+<td><p>Full name of the user</p></td>
+</tr>
+<tr class="row-odd"><td><p>username</p></td>
+<td><p>String</p></td>
+<td><p>Unique username</p></td>
+</tr>
+<tr class="row-even"><td><p>email</p></td>
+<td><p>String</p></td>
+<td><p>Email address</p></td>
+</tr>
+<tr class="row-odd"><td><p>password</p></td>
+<td><p>String</p></td>
+<td><p>Raw password (hashed internally)</p></td>
+</tr>
+<tr class="row-even"><td><p>role</p></td>
+<td><p>String</p></td>
+<td><p>Optional (user/admin/manager)</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response Example</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User registered successfully&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mary&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mary_fad&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mary@gmail.com&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="login-user">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Login User</a><a class="headerlink" href="#login-user" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/users/login</strong></p>
+<p>Authenticates a user and returns a JWT token.</p>
+<p><strong>Response Example</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Login successful&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eyJhbGciOiJIUzI1NiIsInR...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-all-users-admin">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Get All Users (Admin)</a><a class="headerlink" href="#get-all-users-admin" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/users</strong></p>
+<p>Returns a list of all registered users.
+Requires admin privileges.</p>
+</section>
+<section id="get-single-user">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Get Single User</a><a class="headerlink" href="#get-single-user" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/users/:username</strong></p>
+<p>Fetches details about a specific user.</p>
+</section>
+<section id="update-user-profile">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Update User Profile</a><a class="headerlink" href="#update-user-profile" title="Link to this heading"></a></h3>
+<p><strong>PUT /api/v1/users/:username</strong></p>
+<p>Updates a user’s profile.
+Passwords are automatically hashed when updated.</p>
+</section>
+<section id="delete-user">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Delete User</a><a class="headerlink" href="#delete-user" title="Link to this heading"></a></h3>
+<p><strong>DELETE /api/v1/users/:username</strong></p>
+<p>Removes a user account permanently.</p>
+</section>
+<section id="get-user-booking-history">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Get User Booking History</a><a class="headerlink" href="#get-user-booking-history" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/users/history/:username</strong></p>
+<p>Fetches booking history from Bookings Service using Axios.</p>
+<p><strong>Response Example</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mary_fad&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bookings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Meeting Room Microservices Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="room_service.html" class="btn btn-neutral float-right" title="Room Service Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,6 +1,27 @@
+/**
+ * @module RoomController
+ * @description
+ * Handles all operations related to rooms: Room creation,
+ * Room deletion, Room availability, Room update....
+ * It also supports internal service-to-service communication
+ * to update room status and extract room availability.
+ *
+ * All errors are passed to the global error.
+ */
+
 const Room = require("../models/Room");
 const cache = require("../utils/cache");
 
+/**
+ * @function checkRoomExistsInternal
+ * @description
+ * Internal endpoint used by other microservices
+ * to validate whether a room exists.
+ *
+ *
+ * @returns Whether room exists  
+ * @returns Room details if found  
+ */
 
 exports.checkRoomExistsInternal = async (req, res,next) => {
   try {
@@ -23,6 +44,17 @@ exports.checkRoomExistsInternal = async (req, res,next) => {
     next(err);
   }
 };
+
+
+/**
+ * @function internalChangeStatus
+ * @description
+ * Internal endpoint used by Bookings Service to update room status
+ * (ex: "booked (...) ", "out-of-service (...)", "available").
+ *
+ * @returns {Object} updated room status
+ */
+
 
 exports.internalChangeStatus = async (req, res,next) => {
   try {
@@ -53,8 +85,16 @@ exports.internalChangeStatus = async (req, res,next) => {
   }
 };
 
+/**
+ * @function addRoom
+ * @description
+ * Add a new room to the system.  
+ * Only administrators and managers are allowed to perform this action.
+ *
+ * @param {Object} body.required - Room details  
+ */
 
-// ADD ROOM (Admin + Manager only)
+
 exports.addRoom = async (req, res,next) => {
   try {
     // Only admin or manager allowed
@@ -76,8 +116,15 @@ exports.addRoom = async (req, res,next) => {
   }
 };
 
+/**
+ * @function updateRoom
+ * @description
+ * This function is for the admins/managers
+ * to update room details (capacity, equipment, location, etc.).  
+ *
+ */
 
-// UPDATE ROOM (Admin + Manager only)
+
 
 exports.updateRoom = async (req, res,next) => {
   try {
@@ -106,8 +153,14 @@ exports.updateRoom = async (req, res,next) => {
   }
 };
 
+/**
+ * @function deleteRoom
+ * @description
+ * Delete a room from the database.  
+ * Only admins may perform this action.
+ * @param {String} id.params.required - Room document ID  
+ */
 
-// DELETE ROOM (Admin only)
 
 exports.deleteRoom = async (req, res,next) => {
   try {
@@ -132,7 +185,16 @@ exports.deleteRoom = async (req, res,next) => {
   }
 };
 
-// GET ALL ROOMS (Everyone) with cachinggg
+/**
+ * @function getAllRooms
+ * @description
+ * Retrieve all rooms in the system.  
+ * Responses are cached for improved performance.
+ *
+ * @returns {Array} list of rooms  
+ * @returns {String} source - cache | database  
+ */
+
 
 exports.getAllRooms = async (req, res, next) => {
   try {
@@ -163,7 +225,19 @@ exports.getAllRooms = async (req, res, next) => {
     next(err);
   }
 };
-// GET ONE ROOM (Everyone)
+
+
+/**
+ * @function getRoomById
+ * @description
+ * Fetch room detailed information.
+ * This can be performed by admins/managers.
+ * 
+ *
+ * @param {String} id.params.required - Room document ID  
+ */
+
+
 
 exports.getRoomById = async (req, res) => {
   try {
@@ -182,8 +256,15 @@ exports.getRoomById = async (req, res) => {
   }
 };
 
-// SEARCH ROOMS (Everyone)
-// Users can search by: capacity, location, equipment, status
+
+/**
+ * @function searchRooms
+ * @description
+ * Search for rooms based on multiple filters:  
+ * capacity, location, equipment list, and status.
+ *
+ * @example /search?capacity=20&equipment=Projector,Microphone
+ */
 
 exports.searchRooms = async (req, res,next) => {
   try {
@@ -207,8 +288,15 @@ exports.searchRooms = async (req, res,next) => {
   }
 };
 
-// CHANGE ROOM STATUS (Admin + Manager)
-// ex: available / booked / out-of-service
+
+/**
+ * @function changeStatus
+ * @description
+ * Change room availability status manually (admin/manager only).
+ *
+ */
+
+
 
 exports.changeStatus = async (req, res,next) => {
   try {

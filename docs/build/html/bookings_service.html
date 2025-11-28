@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bookings Service Documentation &mdash; Meeting Room Microservices 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Review Service Documentation" href="review_service.html" />
+    <link rel="prev" title="Room Service Documentation" href="room_service.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Meeting Room Microservices
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Services</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_service.html">User Service Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="room_service.html">Room Service Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bookings Service Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#technology-stack">Technology Stack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#endpoints">Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-booking">Create Booking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cancel-my-booking">Cancel My Booking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admin-cancel-booking">Admin Cancel Booking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#block-room-admin-manager">Block Room (Admin/Manager)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unblock-room">Unblock Room</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#check-availability">Check Availability</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-all-bookings">Get All Bookings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#internal-get-bookings-by-user">Internal — Get Bookings by User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#internal-get-bookings-by-room">Internal — Get Bookings by Room</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="review_service.html">Review Service Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Meeting Room Microservices</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Bookings Service Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/bookings_service.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="bookings-service-documentation">
+<h1>Bookings Service Documentation<a class="headerlink" href="#bookings-service-documentation" title="Link to this heading"></a></h1>
+<p>The <strong>Bookings Service</strong> manages reservation scheduling, blocking
+rooms, cancellation logic, date conflict detection, and synchronization
+with the Room Service for live status updates.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#technology-stack" id="id2">Technology Stack</a></p></li>
+<li><p><a class="reference internal" href="#endpoints" id="id3">Endpoints</a></p>
+<ul>
+<li><p><a class="reference internal" href="#create-booking" id="id4">Create Booking</a></p></li>
+<li><p><a class="reference internal" href="#cancel-my-booking" id="id5">Cancel My Booking</a></p></li>
+<li><p><a class="reference internal" href="#admin-cancel-booking" id="id6">Admin Cancel Booking</a></p></li>
+<li><p><a class="reference internal" href="#block-room-admin-manager" id="id7">Block Room (Admin/Manager)</a></p></li>
+<li><p><a class="reference internal" href="#unblock-room" id="id8">Unblock Room</a></p></li>
+<li><p><a class="reference internal" href="#check-availability" id="id9">Check Availability</a></p></li>
+<li><p><a class="reference internal" href="#get-all-bookings" id="id10">Get All Bookings</a></p></li>
+<li><p><a class="reference internal" href="#internal-get-bookings-by-user" id="id11">Internal — Get Bookings by User</a></p></li>
+<li><p><a class="reference internal" href="#internal-get-bookings-by-room" id="id12">Internal — Get Bookings by Room</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This service provides:</p>
+<ul class="simple">
+<li><p>Standard bookings</p></li>
+<li><p>Updating and cancelling bookings</p></li>
+<li><p>Checking room availability</p></li>
+<li><p>Blocking rooms (admin/manager)</p></li>
+<li><p>Automatically updating room status</p></li>
+<li><p>Circuit breaker for Room Service communication</p></li>
+<li><p>Internal APIs for cross-service queries</p></li>
+</ul>
+</section>
+<section id="technology-stack">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Technology Stack</a><a class="headerlink" href="#technology-stack" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Node.js / Express</p></li>
+<li><p>MongoDB / Mongoose</p></li>
+<li><p>Axios + Circuit Breaker Pattern</p></li>
+<li><p>Inter-service authenticated requests</p></li>
+</ul>
+</section>
+<section id="endpoints">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Endpoints</a><a class="headerlink" href="#endpoints" title="Link to this heading"></a></h2>
+<section id="create-booking">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Create Booking</a><a class="headerlink" href="#create-booking" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/bookings</strong></p>
+<p>Validates:</p>
+<ul class="simple">
+<li><p>Room exists (via Room Service)</p></li>
+<li><p>Date format</p></li>
+<li><p>No time overlap</p></li>
+</ul>
+<p>Example Request:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;roomID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OXY-1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;checkin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-10T10:00:00Z&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;checkout&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-10T12:00:00Z&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="cancel-my-booking">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Cancel My Booking</a><a class="headerlink" href="#cancel-my-booking" title="Link to this heading"></a></h3>
+<p><strong>DELETE /api/v1/bookings/:bookingID</strong></p>
+<p>User-specific cancellation.</p>
+</section>
+<section id="admin-cancel-booking">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Admin Cancel Booking</a><a class="headerlink" href="#admin-cancel-booking" title="Link to this heading"></a></h3>
+<p><strong>DELETE /api/v1/bookings/admin/:bookingID</strong></p>
+<p>Forced cancellation + room status update.</p>
+</section>
+<section id="block-room-admin-manager">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Block Room (Admin/Manager)</a><a class="headerlink" href="#block-room-admin-manager" title="Link to this heading"></a></h3>
+<p><strong>POST /api/v1/bookings/admin/block-room</strong></p>
+<p>Used to mark a room unavailable.</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;roomID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OXY-1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;checkin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-10T10:00:00Z&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;checkout&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-10T13:00:00Z&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;blockReason&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maintenance&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="unblock-room">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Unblock Room</a><a class="headerlink" href="#unblock-room" title="Link to this heading"></a></h3>
+<p><strong>DELETE /api/v1/bookings/admin/block-room/:blockID</strong></p>
+</section>
+<section id="check-availability">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Check Availability</a><a class="headerlink" href="#check-availability" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/bookings/availability?roomID=…</strong></p>
+<p>Returns:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;roomID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OXY-1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;available&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-all-bookings">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Get All Bookings</a><a class="headerlink" href="#get-all-bookings" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/bookings</strong></p>
+<p>Admins only.</p>
+</section>
+<section id="internal-get-bookings-by-user">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Internal — Get Bookings by User</a><a class="headerlink" href="#internal-get-bookings-by-user" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/bookings/history/user/:username</strong></p>
+<p>Used by User Service.</p>
+</section>
+<section id="internal-get-bookings-by-room">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Internal — Get Bookings by Room</a><a class="headerlink" href="#internal-get-bookings-by-room" title="Link to this heading"></a></h3>
+<p><strong>GET /api/v1/bookings/rooms/:roomID</strong></p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="room_service.html" class="btn btn-neutral float-left" title="Room Service Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="review_service.html" class="btn btn-neutral float-right" title="Review Service Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
